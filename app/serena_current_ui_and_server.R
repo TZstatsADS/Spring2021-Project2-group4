@@ -6,8 +6,14 @@ uitabs <- shinyUI( navbarPage("Weather and Covid", id="nav", theme="bootstrap.cs
                                          verbatimTextOutput("val1")
                                        )),
                               tabPanel("Time Series Visualizations",
-                                       fluidRow(column(width=4,
-                                                       plotOutput("plot2", height=350, click="plot2_click")))),
+                                       fluidRow(column(width=10,
+                                                       sliderInput("Days-Range",
+                                                                   label="Range of Days:",
+                                                                   min=0,max=100, value = c(0,100)),
+                                                       numericInput("anum1", "ARIMA input 1:", 1),
+                                                       numericInput("anum2", "ARIMA input 2:", 1),
+                                                       numericInput("anum3", "ARIMA input 3:", 1),
+                                                       plotOutput("plot2", height=500, click="plot2_click")))),
                               tabPanel("Data Inspection",
                                        fluidRow(
                                          selectInput("dataId", label = "Choose dataset", choices = c("mtcars", "mtcars2"),
@@ -21,7 +27,8 @@ uitabs <- shinyUI( navbarPage("Weather and Covid", id="nav", theme="bootstrap.cs
                                                            brush = brushOpts(
                                                              id = "plot1_brush"
                                                            )
-                                                )
+                                                ),
+                                                plotOutput("plotbrush", height=300, brush=brushOpts(id="plotbrush_brush"))
                                          )
                                        ),
                                        fluidRow(
@@ -63,10 +70,18 @@ servertabs <- function(input, output) {
     brushedPoints(datas, input$plot1_brush)
   })
   
+  # try to plot brushed points
+  output$plotbrush <- renderPlot({
+    brushind <- input$plotbrush_brush
+    ggplot(mtcars[brushind,],  aes(wt, mpg))+geom_point()
+  })
+  
+  # also output the mean of the points (x,y) ?
+  
   # add the time series analysis
   
   # Arima model library(forecasts)
-  amodel <- Arima(hos_ts, order = c(1,2,3))
+  amodel <- Arima(tx, order = c(1,2,3))
   
   # output time series plot
   output$plot2 <- renderPlot({
@@ -75,3 +90,4 @@ servertabs <- function(input, output) {
   })
   
 }
+
