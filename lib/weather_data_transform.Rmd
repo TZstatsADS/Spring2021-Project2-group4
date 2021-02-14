@@ -93,12 +93,13 @@ dbWriteTable(
   weather_con,
   "weather_transformed",
   weather_sel,
+  overwrite=TRUE
 )
 ```
 
 And let's test with a query to ensure it was written correctly
 ```{r}
-test <- dbSendQuery(conn = weather_con, statement = "SELECT * from weather_transformed LIMIT 100")
+test <- dbSendQuery(conn = weather_con, statement = "SELECT DISTINCT(DATE) from weather_transformed")
 test_sel <- dbFetch(test)
 head(test_sel)
 ```
