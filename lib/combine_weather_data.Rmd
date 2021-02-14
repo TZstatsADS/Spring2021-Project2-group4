@@ -17,13 +17,13 @@ tbl2019 <-
     map_df(~read_csv(., col_types = cols(.default = "c")))
 
 tbl2020 <-
-    list.files(path = "../data/weather_data_raw/2019/",
+    list.files(path = "../data/weather_data_raw/2020/",
                pattern = "*.csv", 
                full.names = T) %>% 
     map_df(~read_csv(., col_types = cols(.default = "c"))) 
 
 tbl2021 <-
-    list.files(path = "../data/weather_data_raw/2019/",
+    list.files(path = "../data/weather_data_raw/2021/",
                pattern = "*.csv", 
                full.names = T) %>% 
     map_df(~read_csv(., col_types = cols(.default = "c"))) 
@@ -46,6 +46,7 @@ dbWriteTable(
   weather_con,
   "weather",
   weather_table,
+  overwrite = TRUE
 )
 ```
 
