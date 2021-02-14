@@ -1,0 +1,113 @@
+```{r}
+library(dplyr)
+library(dbplyr)
+library(dbplot)
+library(DBI)
+library(tidyverse)
+library(data.table)
+```
+
+```{r}
+# Access sqlite DB
+weather_con <- DBI::dbConnect(RSQLite::SQLite(), "../output/weather_data.sqlite")
+```
+
+```{r}
+test <- dbSendQuery(conn = weather_con, statement = "SELECT * from weather where random() <= 0.1 LIMIT 1000")
+test_sel <- dbFetch(test)
+print(test_sel)
+print(colnames(test_sel))
+
+foo <- separate(test_sel, "NAME", c("Station_Name", "Country"), sep= ", ")
+print(foo)
+```
+
+Station Names:
+```{r}
+names <- dbSendQuery(conn = weather_con, statement = "SELECT DISTINCT(NAME) from weather ORDER BY NAME ASC")
+names_sel <- dbFetch(names)
+print(names_sel)
+```
+
+Number of days:
+```{r}
+num_days <- 31 + 366 + 31
+```
+
+Main Table:
+```{r}
+weather <- tbl(weather_con, "weather") %>% select(STATION, DATE, NAME, TEMP, MAX, MIN, FRSHTT)
+weather
+
+num_total <- weather %>% summarise(n()) %>% collect()
+num_total <- num_total$`n()`
+  #%>% add_column(separate(), w = 0)
+```
+
+Missing Temp Data?
+```{r}
+num_missing <- weather %>% filter(TEMP == 9999.9 | MAX == 9999.9 | MIN == 9999.9) %>% summarise(n()) %>% collect()
+num_missing <- num_missing$`n()`
+
+perc_missing <- num_missing/num_total; perc_missing
+```
+Missing Names?
+```{r}
+name_missing <- weather %>% filter(is.na(NAME)) %>% summarise(n()) %>% collect()
+name_missing <- name_missing$`n()`
+
+perc_missing <- name_missing/num_total; perc_missing
+```
+
+
+Our percent of missing data is very small, so we can reasonably get rid of it.
+```{r}
+weather <- weather %>% filter(TEMP != 9999.9 & MAX != 9999.9 & MIN != 9999.9) %>% filter(!is.na(NAME))
+```
+
+Now we want to group the observartions by country, but first we need a separate country column
+
+
+Create new column as country and return averages of temperature and precipitation:
+
+```{r}
+weather <- dbSendQuery(conn = weather_con, statement = "SELECT DATE, SUBSTR(NAME, INSTR(NAME, ', ') + 2) as Country_Code, AVG(TEMP), AVG(MAX), AVG(MIN), AVG(PRCP) FROM weather WHERE NAME IS NOT NULL AND TEMP <> 9999.9 AND MAX <> 9999.9 AND MIN <> 9999.9 GROUP BY Country_Code, DATE " )
+
+weather_sel <- dbFetch(weather)
+head(weather_sel)
+ 
+# all_sel <- separate(all_sel, "NAME", c("Station_Name", "Country"), sep= ", ")
+# head(all_sel)
+```
+Now for the US, the state is listed alongside the country, so we need to split those up into separate columns as well
+```{r}
+weather_sel <- weather_sel %>% separate("Country_Code", c("State_Name", "Country"), sep= " ", fill = "left")
+head(weather_sel)
+
+# Double check that it works for US States
+weather_sel %>% filter(Country %like% 'US')
+```
+Now all we need to do is reinsert this transformed table into our database
+```{r}
+dbWriteTable(
+  weather_con,
+  "weather_transformed",
+  weather_sel,
+  overwrite=TRUE
+)
+```
+
+And let's test with a query to ensure it was written correctly
+```{r}
+test <- dbSendQuery(conn = weather_con, statement = "SELECT DISTINCT(DATE) from weather_transformed")
+test_sel <- dbFetch(test)
+head(test_sel)
+```
+Hooray!
+
+
+
+
+
+
+

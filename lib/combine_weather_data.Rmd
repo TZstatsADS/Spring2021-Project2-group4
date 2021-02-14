@@ -1,0 +1,73 @@
+```{r}
+library(dplyr)
+library(dbplyr)
+library(dbplot)
+library(DBI)
+library(tidyverse)
+library(data.table)
+```
+
+
+```{r}
+# https://stackoverflow.com/questions/11433432/how-to-import-multiple-csv-files-at-once
+tbl2019 <-
+    list.files(path = "../data/weather_data_raw/2019/",
+               pattern = "*.csv", 
+               full.names = T) %>% 
+    map_df(~read_csv(., col_types = cols(.default = "c")))
+
+tbl2020 <-
+    list.files(path = "../data/weather_data_raw/2020/",
+               pattern = "*.csv", 
+               full.names = T) %>% 
+    map_df(~read_csv(., col_types = cols(.default = "c"))) 
+
+tbl2021 <-
+    list.files(path = "../data/weather_data_raw/2021/",
+               pattern = "*.csv", 
+               full.names = T) %>% 
+    map_df(~read_csv(., col_types = cols(.default = "c"))) 
+```
+
+
+```{r}
+# Filtering for only December dates because of COVID
+tbl2019 <- tbl2019 %>% filter(str_detect(DATE, '2019-12'))
+```
+
+```{r}
+weather_table <- rbind(tbl2019, tbl2020, tbl2021)
+```
+
+```{r}
+# Store full table as SQLite DB
+weather_con <- DBI::dbConnect(RSQLite::SQLite(), "../output/weather_data.sqlite")
+dbWriteTable(
+  weather_con,
+  "weather",
+  weather_table,
+  overwrite = TRUE
+)
+```
+
+Test Query on Table
+```{r}
+test <- dbSendQuery(conn = weather_con, statement = "SELECT STATION, DATE, TEMP from weather LIMIT 10")
+test_sel <- dbFetch(test)
+head(test_sel)
+```
+
+
+```{r}
+write.csv(weather_table, "../output/weather_data.csv")
+```
+
+
+
+
+
+
+
+
+
+
