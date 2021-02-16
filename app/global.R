@@ -51,109 +51,67 @@ cumulative_plot = function(cv_aggregated, plot_date) {
 }
 
 # function to plot new COVID cases by date
-new_cases_plot = function(cv_aggregated, plot_date) {
+new_cases_plot = function(cv_aggregated, plot_date, plot_title) {
   plot_df_new = subset(cv_aggregated, date<=plot_date)
-  g1 = ggplot(plot_df_new, aes(x = date, y = new, colour = region)) + geom_line() + geom_point(size = 1, alpha = 0.8) +
-    # geom_bar(position="stack", stat="identity") + 
+  g1 = ggplot(plot_df_new, aes(x = date, y = new_cases, colour = region)) + geom_line() + geom_point(size = 1, alpha = 0.8) +
     ylab("New cases (weekly)") + xlab("Date") + theme_bw() + 
     scale_colour_manual(values=c(covid_col)) +
     scale_y_continuous(labels = function(l) {trans = l / 1000000; paste0(trans, "M")}) +
     theme(legend.title = element_blank(), legend.position = "", plot.title = element_text(size=10), 
-          plot.margin = margin(5, 12, 5, 5))
+          plot.margin = margin(5, 12, 5, 5)) +
+    ggtitle(plot_title) 
   g1
 }
 
-# test function
-#cumulative_plot(cv_aggregated, current_date)
-#new_cases_plot(cv_aggregated, current_date)
-
-
-# function to plot new cases by region
-country_cases_plot = function(cv_cases, start_point=c("Date", "Week of 100th confirmed case", "Week of 10th death"), plot_start_date) {
-  if (start_point=="Date") {
-    g = ggplot(cv_cases, aes(x = date, y = new_outcome, fill = region, group = 1,
-                             text = paste0(format(date, "%d %B %Y"), "\n", region, ": ",new_outcome))) + 
-      xlim(c(plot_start_date,(current_date+5))) + xlab("Date")
-  }
+# function to plot cumulative cases by date with variable start date
+cumulative_cases_plot = function(cv_aggregated, start_date, plot_title) {
+  g = ggplot(cv_aggregated, aes(x = date, y = cases, group = 1,
+                           text = paste0(format(date, "%d %B %Y"), "\n", region, ": ",cases))) +
+    xlim(c(start_date,(current_date+1))) + xlab("Date")
   
-  if (start_point=="Week of 100th confirmed case") {
-    cv_cases = subset(cv_cases, weeks_since_case100>0)
-    g = ggplot(cv_cases, aes(x = weeks_since_case100, y = new_outcome, fill = region, group = 1,
-                             text = paste0("Week ",weeks_since_case100, "\n", region, ": ",new_outcome)))+
-      xlab("Weeks since 100th confirmed case") #+ xlim(c(plot_start_date,(current_date+5))) 
-  }
-  
-  if (start_point=="Week of 10th death") {
-    cv_cases = subset(cv_cases, weeks_since_death10>0)
-    g = ggplot(cv_cases, aes(x = weeks_since_death10, y = new_outcome, fill = region, group = 1,
-                             text = paste0("Week ",weeks_since_death10, "\n", region, ": ",new_outcome))) +
-      xlab("Weeks since 10th death") #+ xlim(c(plot_start_date,(current_date+5))) 
-  }
-  
-  g1 = g +
-    geom_bar(position="stack", stat="identity") + 
-    ylab("New (weekly)") + theme_bw() + 
-    scale_fill_manual(values=country_cols) +
-    theme(legend.title = element_blank(), legend.position = "", plot.title = element_text(size=10))
+  g1 = g + geom_line(alpha=0.8) + geom_point(size = 1, alpha = 0.8) +
+    ylab("Cases") + theme_bw() + 
+    theme(legend.title = element_blank(), legend.position = "", plot.title = element_text(size=10)) +
+    ggtitle(plot_title) 
   ggplotly(g1, tooltip = c("text")) %>% layout(legend = list(font = list(size=11)))
 }
 
-# function to plot cumulative cases by region
-country_cases_cumulative = function(cv_cases, start_point=c("Date", "Week of 100th confirmed case", "Week of 10th death"), plot_start_date) {
-  if (start_point=="Date") {
-    g = ggplot(cv_cases, aes(x = date, y = outcome, colour = region, group = 1,
-                             text = paste0(format(date, "%d %B %Y"), "\n", region, ": ",outcome))) +
-      xlim(c(plot_start_date,(current_date+1))) + xlab("Date")
-  }
-  
-  if (start_point=="Week of 100th confirmed case") {
-    cv_cases = subset(cv_cases, weeks_since_case100>0)
-    g = ggplot(cv_cases, aes(x = weeks_since_case100, y = outcome, colour = region, group = 1,
-                             text = paste0("Week ", weeks_since_case100,"\n", region, ": ",outcome))) +
-      xlab("Weeks since 100th confirmed case")
-  }
-  
-  if (start_point=="Week of 10th death") {
-    cv_cases = subset(cv_cases, weeks_since_death10>0)
-    g = ggplot(cv_cases, aes(x = weeks_since_death10, y = outcome, colour = region, group = 1,
-                             text = paste0("Week ", weeks_since_death10,"\n", region, ": ",outcome))) +
-      xlab("Weeks since 10th death")
-  }
+# function to plot cumulative deaths by date with variable start date
+cumulative_deaths_plot = function(cv_aggregated, start_date, plot_title) {
+  g = ggplot(cv_aggregated, aes(x = date, y = deaths, group = 1,
+                                text = paste0(format(date, "%d %B %Y"), "\n", region, ": ",cases))) +
+    xlim(c(start_date,(current_date+1))) + xlab("Date")
   
   g1 = g + geom_line(alpha=0.8) + geom_point(size = 1, alpha = 0.8) +
-    ylab("Cumulative") + theme_bw() + 
-    scale_colour_manual(values=country_cols) +
-    theme(legend.title = element_blank(), legend.position = "", plot.title = element_text(size=10))
+    ylab("Deaths") + theme_bw() + 
+    theme(legend.title = element_blank(), legend.position = "", plot.title = element_text(size=10)) +
+    ggtitle(plot_title) 
   ggplotly(g1, tooltip = c("text")) %>% layout(legend = list(font = list(size=11)))
 }
 
-# function to plot cumulative cases by region on log10 scale
-country_cases_cumulative_log = function(cv_cases, start_point=c("Date", "Week of 100th confirmed case", "Week of 10th death"), plot_start_date)  {
-  if (start_point=="Date") {
-    g = ggplot(cv_cases, aes(x = date, y = outcome, colour = region, group = 1,
-                             text = paste0(format(date, "%d %B %Y"), "\n", region, ": ",outcome))) +
-      xlim(c(plot_start_date,(current_date+1))) + xlab("Date")
-  }
-  
-  if (start_point=="Week of 100th confirmed case") {
-    cv_cases = subset(cv_cases, weeks_since_case100>0)
-    g = ggplot(cv_cases, aes(x = weeks_since_case100, y = outcome, colour = region, group = 1,
-                             text = paste0("Week ",weeks_since_case100, "\n", region, ": ",outcome))) +
-      xlab("Weeks since 100th confirmed case")
-  }
-  
-  if (start_point=="Week of 10th death") {
-    cv_cases = subset(cv_cases, weeks_since_death10>0)
-    g = ggplot(cv_cases, aes(x = weeks_since_death10, y = outcome, colour = region, group = 1,
-                             text = paste0("Week ",weeks_since_death10, "\n", region, ": ",outcome))) +
-      xlab("Weeks since 10th death")
-  }
+# function to plot new cases by date with variable start date
+new_cases_plot_varstart = function(cv_aggregated, start_date, plot_title) {
+  g = ggplot(cv_aggregated, aes(x = date, y = new_cases, group = 1,
+                                text = paste0(format(date, "%d %B %Y"), "\n", region, ": ",cases))) +
+    xlim(c(start_date,(current_date+1))) + xlab("Date")
   
   g1 = g + geom_line(alpha=0.8) + geom_point(size = 1, alpha = 0.8) +
-    ylab("Cumulative (log10)") + theme_bw() +
-    scale_y_continuous(trans="log10") +
-    scale_colour_manual(values=country_cols) +
-    theme(legend.title = element_blank(), legend.position = "", plot.title = element_text(size=10))
+    ylab("Cases") + theme_bw() + 
+    theme(legend.title = element_blank(), legend.position = "", plot.title = element_text(size=10)) +
+    ggtitle(plot_title) 
+  ggplotly(g1, tooltip = c("text")) %>% layout(legend = list(font = list(size=11)))
+}
+
+# function to plot new deaths by date with variable start date
+new_deaths_plot = function(cv_aggregated, start_date, plot_title) {
+  g = ggplot(cv_aggregated, aes(x = date, y = new_deaths, group = 1,
+                                text = paste0(format(date, "%d %B %Y"), "\n", region, ": ",cases))) +
+    xlim(c(start_date,(current_date+1))) + xlab("Date")
+  
+  g1 = g + geom_line(alpha=0.8) + geom_point(size = 1, alpha = 0.8) +
+    ylab("Deaths") + theme_bw() + 
+    theme(legend.title = element_blank(), legend.position = "", plot.title = element_text(size=10)) +
+    ggtitle(plot_title) 
   ggplotly(g1, tooltip = c("text")) %>% layout(legend = list(font = list(size=11)))
 }
 
@@ -215,7 +173,7 @@ cv_today_reduced = subset(cv_today, cases>=1000)
 write.csv(cv_today %>% select(c(country, date, update, cases, new_cases, deaths, new_deaths,
                                 cases_per_million, new_cases_per_million,
                                 deaths_per_million, new_deaths_per_million,
-                                weeks_since_case100, weeks_since_death10)), "output/coronavirus_today.csv")
+                                weeks_since_case100, weeks_since_death10)), "../output/coronavirus_today.csv")
 
 # aggregate at continent level
 cv_cases_continent = subset(cv_cases, !is.na(continent_level)) %>% select(c(cases, new_cases, deaths, new_deaths, date, continent_level)) %>% group_by(continent_level, date) %>% summarise_each(funs(sum)) %>% data.frame()
@@ -241,12 +199,16 @@ cv_cases_continent$pop[cv_cases_continent$continent=="North America"] = 5.8e8
 cv_cases_continent$pop[cv_cases_continent$continent=="Oceania"] = 3.8e7
 cv_cases_continent$pop[cv_cases_continent$continent=="South America"] = 4.2e8
 
+# split by hemisphere
+cv_cases_northern = cv_cases[cv_cases$latitude >= 15 & cv_cases$latitude <= 60, ]
+cv_cases_southern = cv_cases[cv_cases$latitude <= -15 & cv_cases$latitude >= -60, ]
+
 # add normalised counts
 cv_cases_continent$cases_per_million =  as.numeric(format(round(cv_cases_continent$cases/(cv_cases_continent$pop/1000000),1),nsmall=1))
 cv_cases_continent$new_cases_per_million =  as.numeric(format(round(cv_cases_continent$new_cases/(cv_cases_continent$pop/1000000),1),nsmall=1))
 cv_cases_continent$deaths_per_million =  as.numeric(format(round(cv_cases_continent$deaths/(cv_cases_continent$pop/1000000),1),nsmall=1))
 cv_cases_continent$new_deaths_per_million =  as.numeric(format(round(cv_cases_continent$new_deaths/(cv_cases_continent$pop/1000000),1),nsmall=1))
-write.csv(cv_cases_continent, "output/coronavirus_continent.csv")
+write.csv(cv_cases_continent, "../output/coronavirus_continent.csv")
 
 # aggregate at global level
 cv_cases_global = cv_cases %>% select(c(cases, new_cases, deaths, new_deaths, date, global_level)) %>% group_by(global_level, date) %>% summarise_each(funs(sum)) %>% data.frame()
@@ -258,7 +220,7 @@ cv_cases_global$cases_per_million =  as.numeric(format(round(cv_cases_global$cas
 cv_cases_global$new_cases_per_million =  as.numeric(format(round(cv_cases_global$new_cases/(cv_cases_global$pop/1000000),1),nsmall=1))
 cv_cases_global$deaths_per_million =  as.numeric(format(round(cv_cases_global$deaths/(cv_cases_global$pop/1000000),1),nsmall=1))
 cv_cases_global$new_deaths_per_million =  as.numeric(format(round(cv_cases_global$new_deaths/(cv_cases_global$pop/1000000),1),nsmall=1))
-write.csv(cv_cases_global, "output/coronavirus_global.csv")
+write.csv(cv_cases_global, "../output/coronavirus_global.csv")
 
 # select large countries for mapping polygons
 cv_large_countries = cv_today %>% filter(alpha3 %in% worldcountry$ADM0_A3)
@@ -266,8 +228,9 @@ if (all(cv_large_countries$alpha3 %in% worldcountry$ADM0_A3)==FALSE) { print("Er
 cv_large_countries = cv_large_countries[order(cv_large_countries$alpha3),]
 
 # create plotting parameters for map
-bins = c(0,10,50,100,500,1000,Inf)
-cv_pal <- colorBin("Oranges", domain = cv_large_countries$cases_per_million, bins = bins)
+bins = c(-19, 51, 70, 75, 80, 107) # manual based on percentiles
+rb_rev <- rev(brewer.pal(6, "RdYlBu"))
+cv_pal <- colorBin(rb_rev, domain = cv_large_countries$cases_per_million, bins = bins)
 plot_map <- worldcountry[worldcountry$ADM0_A3 %in% cv_large_countries$alpha3, ]
 
 # create cv base map 
@@ -275,30 +238,76 @@ basemap = leaflet(plot_map) %>%
   addTiles() %>% 
   addLayersControl(
     position = "bottomright",
-    overlayGroups = c("2019-COVID (new)", "2019-COVID (cumulative)"),
+    overlayGroups = c("COVID-19 (new)", "COVID-19 (cumulative)"),
     options = layersControlOptions(collapsed = FALSE)) %>% 
-  hideGroup(c("2019-COVID (cumulative)")) %>%
+  hideGroup(c("COVID-19 (new)")) %>%
   addProviderTiles(providers$CartoDB.Positron) %>%
   fitBounds(~-100,-60,~60,70) %>%
   addLegend("bottomright", pal = cv_pal, values = ~cv_large_countries$deaths_per_million,
-            title = "<small>Deaths per million</small>") 
+            title = "<small>Temperature</small>") 
 
 # sum cv case counts by date
-cv_aggregated = aggregate(cv_cases$cases, by=list(Category=cv_cases$date), FUN=sum)
-names(cv_aggregated) = c("date", "cases")
+cv_aggregated = aggregate(cv_cases[c("cases","deaths")], by=list(Category=cv_cases$date), FUN=sum)
+names(cv_aggregated) = c("date", "cases", "deaths")
+cv_aggregated_northern = aggregate(cv_cases_northern[c("cases","deaths")], by=list(cv_cases_northern$date), FUN=sum)
+names(cv_aggregated_northern) = c("date", "cases", "deaths")
+cv_aggregated_southern = aggregate(cv_cases_southern[c("cases","deaths")], by=list(Category=cv_cases_southern$date), FUN=sum)
+names(cv_aggregated_southern) = c("date", "cases", "deaths")
 
 # add variable for new cases in last 7 days
 for (i in 1:nrow(cv_aggregated)) { 
-  if (i==1) { cv_aggregated$new[i] = 0 }
-  if (i>1) { cv_aggregated$new[i] = cv_aggregated$cases[i] - cv_aggregated$cases[i-1] }
+  if (i==1) { cv_aggregated$new_cases[i] = 0 }
+  if (i>1) { cv_aggregated$new_cases[i] = cv_aggregated$cases[i] - cv_aggregated$cases[i-1] }
+}
+for (i in 1:nrow(cv_aggregated)) { 
+  if (i==1) { cv_aggregated$new_deaths[i] = 0 }
+  if (i>1) { cv_aggregated$new_deaths[i] = cv_aggregated$deaths[i] - cv_aggregated$deaths[i-1] }
+}
+
+for (i in 1:nrow(cv_aggregated_northern)) { 
+  if (i==1) { cv_aggregated_northern$new_cases[i] = 0 }
+  if (i>1) { cv_aggregated_northern$new_cases[i] = cv_aggregated_northern$cases[i] - cv_aggregated_northern$cases[i-1] }
+}
+for (i in 1:nrow(cv_aggregated_northern)) { 
+  if (i==1) { cv_aggregated_northern$new_deaths[i] = 0 }
+  if (i>1) { cv_aggregated_northern$new_deaths[i] = cv_aggregated_northern$deaths[i] - cv_aggregated_northern$deaths[i-1] }
+}
+
+for (i in 1:nrow(cv_aggregated_southern)) { 
+  if (i==1) { cv_aggregated_southern$new_cases[i] = 0 }
+  if (i>1) { cv_aggregated_southern$new_cases[i] = cv_aggregated_southern$cases[i] - cv_aggregated_southern$cases[i-1] }
+}
+for (i in 1:nrow(cv_aggregated_southern)) { 
+  if (i==1) { cv_aggregated_southern$new_deaths[i] = 0 }
+  if (i>1) { cv_aggregated_southern$new_deaths[i] = cv_aggregated_southern$deaths[i] - cv_aggregated_southern$deaths[i-1] }
 }
 
 # add plotting region
 cv_aggregated$region = "Global"
 cv_aggregated$date = as.Date(cv_aggregated$date,"%Y-%m-%d")
+
+cv_aggregated_northern$region = "Northern"
+cv_aggregated_northern$date = as.Date(cv_aggregated_northern$date,"%Y-%m-%d")
+
+cv_aggregated_southern$region = "Southern"
+cv_aggregated_southern$date = as.Date(cv_aggregated_southern$date,"%Y-%m-%d")
+
 # 
 # assign colours to countries to ensure consistency between plots
 cls = rep(c(brewer.pal(8,"Dark2"), brewer.pal(10, "Paired"), brewer.pal(12, "Set3"), brewer.pal(8,"Set2"), brewer.pal(9, "Set1"), brewer.pal(8, "Accent"),  brewer.pal(9, "Pastel1"),  brewer.pal(8, "Pastel2")),4)
 cls_names = c(as.character(unique(cv_cases$country)), as.character(unique(cv_cases_continent$continent)), as.character(unique(cv_states$state)),"Global")
 country_cols = cls[1:length(cls_names)]
 names(country_cols) = cls_names
+
+# add weather data 
+weather_con <- DBI::dbConnect(RSQLite::SQLite(), "../output/weather_data.sqlite")
+weather <- dbSendQuery(conn = weather_con, statement = "SELECT * from weather_transformed")
+df_weather <- dbFetch(weather)
+df_weather <- df_weather %>% 
+  rename(
+    date = DATE,
+    alpha2 = Country
+  )
+df_weather <- subset(df_weather, select = c('date', 'alpha2', 'AVG(TEMP)'))
+cv_cases <- merge(cv_cases, df_weather, by=c("date","alpha2"))
+rm(df_weather)

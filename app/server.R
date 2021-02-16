@@ -33,6 +33,12 @@ server = function(input, output, session) {
         large_countries
     })
     
+    reactive_db_hemisphere = reactive({
+        large_countries = reactive_db_last7d() %>% filter(alpha3 %in% worldcountry$ADM0_A3)
+        large_countries = large_countries[order(large_countries$alpha3),]
+        large_countries
+    })
+    
     reactive_polygons = reactive({
         worldcountry[worldcountry$ADM0_A3 %in% reactive_db_large()$alpha3, ]
     })
@@ -66,31 +72,39 @@ server = function(input, output, session) {
             clearMarkers() %>%
             clearShapes() %>%
             
-            addCircleMarkers(data = reactive_db(), lat = ~ latitude, lng = ~ longitude, weight = 1, radius = ~(cases)^(1/5.5), 
-                             fillOpacity = 0.1, color = covid_col, group = "2019-COVID (cumulative)",
-                             label = sprintf("<strong>%s (cumulative)</strong><br/>Confirmed cases: %g<br/>Deaths: %d<br/>Cases per million: %g<br/>Deaths per million: %g", reactive_db()$country, reactive_db()$cases, reactive_db()$deaths, reactive_db()$cases_per_million, reactive_db()$deaths_per_million) %>% lapply(htmltools::HTML),
+            addCircleMarkers(data = reactive_db(), lat = ~ latitude, lng = ~ longitude, weight = 1, radius = ~(cases)^(1/5), 
+                             fillOpacity = 0.2, color = covid_col, group = "COVID-19 (cumulative)",
+                             label = sprintf("<strong>%s (cumulative)</strong><br/>Avg Temperature: %.1f<br/>Confirmed cases: %g<br/>Cases per million: %g", reactive_db()$country, round(reactive_db()$'AVG(TEMP)', 1), reactive_db()$cases, reactive_db()$cases_per_million) %>% lapply(htmltools::HTML),
                              labelOptions = labelOptions(
                                  style = list("font-weight" = "normal", padding = "3px 8px", "color" = covid_col),
                                  textsize = "15px", direction = "auto")) %>%  
             
-            addPolygons(data = reactive_polygons(), stroke = FALSE, smoothFactor = 0.1, fillOpacity = 0.15, fillColor = ~cv_pal(reactive_db_large()$deaths_per_million)) %>%
+            addPolygons(data = reactive_polygons(), stroke = FALSE, smoothFactor = 0.1, fillOpacity = 0.5, fillColor = ~cv_pal(reactive_db_large()$'AVG(TEMP)')) %>%
             
-            addCircleMarkers(data = reactive_db_last7d(), lat = ~ latitude, lng = ~ longitude, weight = 1, radius = ~(new_cases)^(1/5.5), 
-                             fillOpacity = 0.1, color = covid_col, group = "2019-COVID (new)",
-                             label = sprintf("<strong>%s (7-day average)</strong><br/>Confirmed cases: %g<br/>Deaths: %d<br/>Cases per million: %g<br/>Deaths per million: %g", reactive_db_last7d()$country, round(reactive_db_last7d()$new_cases/7,0), round(reactive_db_last7d()$new_deaths/7,0), round(reactive_db_last7d()$new_cases_per_million/7,1), round(reactive_db_last7d()$new_deaths_per_million/7,1)) %>% lapply(htmltools::HTML),
+            addCircleMarkers(data = reactive_db_last7d(), lat = ~ latitude, lng = ~ longitude, weight = 1, radius = ~(10*new_cases/cases), 
+                             fillOpacity = 0.1, color = covid_col, group = "COVID-19 (new)",
+                             label = sprintf("<strong>%s (7-day average)</strong><br/>Avg Temperature: %.1f<br/>Confirmed cases: %g<br/>Cases per million: %g", reactive_db_last7d()$country, reactive_db_last7d()$'AVG(TEMP)', round(reactive_db_last7d()$new_cases/7,0), round(reactive_db_last7d()$new_cases_per_million/7,1), round(reactive_db_last7d()$new_deaths_per_million/7,1)) %>% lapply(htmltools::HTML),
                              labelOptions = labelOptions(
                                  style = list("font-weight" = "normal", padding = "3px 8px", "color" = covid_col),
                                  textsize = "15px", direction = "auto")) 
     })
     
-    output$cumulative_plot <- renderPlot({
-        cumulative_plot(cv_aggregated, formatted_date())
+    
+    output$cumulative_northern_plot <- renderPlot({
+        cumulative_plot(cv_aggregated_northern, formatted_date())
     })
     
-    output$epi_curve <- renderPlot({
-        new_cases_plot(cv_aggregated, formatted_date())
+    output$cumulative_southern_plot <- renderPlot({
+        cumulative_plot(cv_aggregated_southern, formatted_date())
     })
     
+    output$epi_northern_curve <- renderPlot({
+        new_cases_plot(cv_aggregated_northern, formatted_date(), 'Northern Hemisphere')
+    })
+    
+    output$epi_southern_curve <- renderPlot({
+        new_cases_plot(cv_aggregated_southern, formatted_date(), 'Southern Hemisphere')
+    })
     
     # add footnote for cases
     output$epi_notes_1 <- renderText({
@@ -112,87 +126,44 @@ server = function(input, output, session) {
         }
     })
     
-    # update region selections
-    observeEvent(input$level_select, {
-        if (input$level_select=="Global") {
-            updatePickerInput(session = session, inputId = "region_select", 
-                              choices = "Global", selected = "Global")
+    # northern new plots
+    output$northern_plot_new <- renderPlotly({
+        if(input$outcome_select=='Cases') {
+            new_cases_plot_varstart(cv_aggregated_northern, input$minimum_date, "Northern Hemisphere")
         }
-        
-        if (input$level_select=="Continent") {
-            updatePickerInput(session = session, inputId = "region_select", 
-                              choices = c("Africa", "Asia", "Europe", "North America", "South America"), 
-                              selected = c("Africa", "Asia", "Europe", "North America", "South America"))
+        else {
+            new_deaths_plot(cv_aggregated_northern, input$minimum_date, "Northern Hemisphere")
         }
-        
-        if (input$level_select=="US state") {
-            updatePickerInput(session = session, inputId = "region_select", 
-                              choices = as.character(cv_states_today[order(-cv_states_today$cases),]$state), 
-                              selected = as.character(cv_states_today[order(-cv_states_today$cases),]$state)[1:10])
-        }
-        
-        if (input$level_select=="Country") {
-            updatePickerInput(session = session, inputId = "region_select", 
-                              choices = as.character(cv_today_reduced[order(-cv_today_reduced$cases),]$country), 
-                              selected = as.character(cv_states_today[order(-cv_states_today$cases),]$state)[1:10])
-        }
-    }, ignoreInit = TRUE)
-    
-    # create dataframe with selected countries
-    country_reactive_db = reactive({
-        if (input$level_select=="Global") { 
-            db = cv_cases_global
-            db$region = db$global_level
-        }
-        if (input$level_select=="Continent") { 
-            db = cv_cases_continent 
-            db$region = db$continent
-        }
-        if (input$level_select=="Country") { 
-            db = cv_cases
-            db$region = db$country
-        }
-        if (input$level_select=="US state") { 
-            db = cv_states
-            db$region = db$state
-        }
-        
-        if (input$outcome_select=="Cases (total)") { 
-            db$outcome = db$cases
-            db$new_outcome = db$new_cases
-        }
-        
-        if (input$outcome_select=="Deaths (total)") { 
-            db$outcome = db$deaths 
-            db$new_outcome = db$new_deaths 
-        }
-        
-        if (input$outcome_select=="Cases per million") { 
-            db$outcome = db$cases_per_million 
-            db$new_outcome = db$new_cases_per_million 
-        }
-        
-        if (input$outcome_select=="Deaths per million") { 
-            db$outcome = db$deaths_per_million 
-            db$new_outcome = db$new_deaths_per_million 
-        }
-        
-        db %>% filter(region %in% input$region_select)
     })
     
-    # country-specific plots
-    output$country_plot <- renderPlotly({
-        country_cases_plot(country_reactive_db(), start_point=input$start_date, input$minimum_date)
+    # northern cumulative plots
+    output$northern_plot_cumulative <- renderPlotly({
+        if(input$outcome_select=='Cases') {
+            cumulative_cases_plot(cv_aggregated_northern, input$minimum_date,"Northern Hemisphere")
+        }
+        else {
+            cumulative_deaths_plot(cv_aggregated_northern, input$minimum_date, "Northern Hemisphere")
+        }
     })
     
-    # country-specific plots
-    output$country_plot_cumulative <- renderPlotly({
-        country_cases_cumulative(country_reactive_db(), start_point=input$start_date, input$minimum_date)
+    # southern new plots
+    output$southern_plot_new <- renderPlotly({
+        if(input$outcome_select=='Cases') {
+            new_cases_plot_varstart(cv_aggregated_southern, input$minimum_date, "Southern Hemisphere")
+        }
+        else {
+            new_deaths_plot(cv_aggregated_southern, input$minimum_date, "Southern Hemisphere")
+        }
     })
     
-    # country-specific plots
-    output$country_plot_cumulative_log <- renderPlotly({
-        country_cases_cumulative_log(country_reactive_db(), start_point=input$start_date, input$minimum_date)
+    # southern cumulative plots
+    output$southern_plot_cumulative <- renderPlotly({
+        if(input$outcome_select=='Cases') {
+            cumulative_cases_plot(cv_aggregated_southern, input$minimum_date, "Southern Hemisphere")
+        }
+        else {
+            cumulative_deaths_plot(cv_aggregated_southern, input$minimum_date, "Southern Hemisphere")
+        }
     })
     
     # output to download data
