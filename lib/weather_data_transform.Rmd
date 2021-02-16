@@ -71,7 +71,7 @@ Now we want to group the observartions by country, but first we need a separate 
 Create new column as country and return averages of temperature and precipitation:
 
 ```{r}
-weather <- dbSendQuery(conn = weather_con, statement = "SELECT DATE, SUBSTR(NAME, INSTR(NAME, ', ') + 2) as Country_Code, AVG(TEMP), AVG(MAX), AVG(MIN), AVG(PRCP) FROM weather WHERE NAME IS NOT NULL AND TEMP <> 9999.9 AND MAX <> 9999.9 AND MIN <> 9999.9 GROUP BY Country_Code, DATE " )
+weather <- dbSendQuery(conn = weather_con, statement = "SELECT DATE, SUBSTR(NAME, INSTR(NAME, ', ') + 2) as Country_Code, AVG(TEMP) as Average_Temp, COUNT(TEMP) as Station_Count, AVG(MAX) as Average_Max, AVG(MIN) as Average_Min, AVG(PRCP) as Average_Prcp FROM weather WHERE NAME IS NOT NULL AND TEMP <> 9999.9 AND MAX <> 9999.9 AND MIN <> 9999.9 GROUP BY Country_Code, DATE " )
 
 weather_sel <- dbFetch(weather)
 head(weather_sel)
@@ -105,6 +105,20 @@ head(test_sel)
 ```
 Hooray!
 
+Include a second table with US states grouped together
+```{r}
+weather_sel_grouped <- weather_sel %>% select(!State_Name) %>% group_by(DATE, Country) %>% summarise(DATE = DATE, Station_Count = sum(Station_Count), Average_Temp = mean(Average_Temp), Average_Max = mean(Average_Max), Average_Min = mean(Average_Min), Average_Prcp = mean(Average_Prcp)) %>% distinct()
+```
+
+Add this as a new table as well
+```{r}
+dbWriteTable(
+  weather_con,
+  "weather_transformed_grouped",
+  weather_sel_grouped,
+  overwrite=TRUE
+)
+```
 
 
 
