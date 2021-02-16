@@ -1,0 +1,26 @@
+Here is the part in the ui (the original dataframe is called " wc1" here.) :
+
+uitabs3 <- shinyUI( navbarPage("Weather and Covid", id="nav", theme="bootstrap.css",
+
+                               tabPanel("Multivar. Time Series Country",
+                                        pickerInput("country_select", "Choose Country:",
+                                                    choices=as.character(unique(wc1$country)),
+                                                    options = list(`actions-box` = TRUE, `none-selected-text` = "Please make a selection!"),
+                                                    selected = as.character(wc1$country)[1])
+                               )
+))
+
+
+Here is the part in the server:
+
+servertabs3 <- function(input, output) {
+ 
+ 
+  c_reactive_db = reactive({
+    wc1 %>% filter(wc1$country %in% input$country_select)
+  })
+
+# do time series with c_reactive_db
+
+
+}
