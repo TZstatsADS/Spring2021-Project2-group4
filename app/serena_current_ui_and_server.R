@@ -386,3 +386,187 @@ servertabs2 <- function(input, output) {
   })
 }
 
+
+
+### 2/ 15
+
+
+
+uitabs2 <- shinyUI( navbarPage("Weather and Covid", id="nav", theme="bootstrap.css",
+                              tabPanel("Interactive Map",
+                                       fluidRow(
+                                         numericInput("num1", "Input number:", 1),
+                                         verbatimTextOutput("val1")
+                                       )),
+                              tabPanel("Time Series Visualizations",
+                                       fluidRow(column(width=10,
+                                                       dateRangeInput("DateRange",
+                                                                      "Choose a date range of the time series:", 
+                                                                      start = "2020-03-13", end = "2020-05-25", 
+                                                                      min = "2020-03-13", max = "2020-05-25"),
+                                                       numericInput("startyear", "Start year:", 2020),
+                                                       numericInput("startmonth", "Start month:", 3),
+                                                       numericInput("startday", "Start day:", 13),
+                                                       textInput("startingdatechar", "Input starting date (in form 2020-03-13):", "2020-03-13"),
+                                                       numericInput("anum1", "ARIMA input 1:", 1),
+                                                       numericInput("anum2", "ARIMA input 2:", 1),
+                                                       numericInput("anum3", "ARIMA input 3:", 1),
+                                                       plotOutput("plot2", height=500, click="plot2_click")),
+                                                       verbatimTextOutput("dateText")
+                                              )),
+                              tabPanel("Multivar. Time Series Prediction",
+                                       plotOutput("multiplot", height=500)),
+                              tabPanel("Data Inspection",
+                                       fluidRow(
+                                         selectInput("dataId", label = "Choose dataset", choices = c("mtcars", "mtcars2"),
+                                                     selected = NULL, multiple = FALSE)
+                                       ),
+                                       fluidRow(
+                                         column(width = 4,
+                                                plotOutput("plot1", height = 300,
+                                                           # Equivalent to: click = clickOpts(id = "plot_click")
+                                                           click = "plot1_click",
+                                                           brush = brushOpts(
+                                                             id = "plot1_brush"
+                                                           )
+                                                ),
+                                                plotOutput("plotbrush", height=300, brush=brushOpts(id="plotbrush_brush"))
+                                         )
+                                       ),
+                                       fluidRow(
+                                         column(width = 6,
+                                                h4("Points near click"),
+                                                verbatimTextOutput("click_info")
+                                         ),
+                                         column(width = 6,
+                                                h4("Brushed points"),
+                                                verbatimTextOutput("brush_info")
+                                         )
+                                       )
+                              )
+)
+)
+
+servertabs2 <- function(input, output) {
+  
+  #library(lubridate)
+  
+  output$val1 <- renderText({input$num1})
+  
+  
+  startdate <- reactive({
+    startdate <- as.POSIXct(paste(as.character(input$DateRange[1]),
+                                  format = "%Y-%m-%d"))
+  })
+  
+  enddate <- reactive({
+    enddate <- as.POSIXct(paste(as.character(input$DateRange[2]),
+                                format = "%Y-%m-%d"))
+  })
+  
+  alabama$day <- as.Date(alabama$date)
+  
+  alabama1 <- reactive({
+      alabama1 <- alabama %>% filter(day >= startdate(), day <= enddate())})
+                                      
+  
+  #strdate <- reactive({get(input$startingdatechar)})
+  
+  #startdate <- as.Date(strdate, format="%m/%d/%Y")
+  
+  base <- reactive({get(input$dataId)}) 
+  
+  output$dateText  <- renderText({
+    paste("input$date is", as.character(input$daterange))
+  })
+  
+
+  
+  
+  output$plot1 <- renderPlot({
+    mydata <- base()
+    ggplot(mydata, aes(wt, mpg))+ geom_point()
+  })
+  
+  
+  output$click_info <- renderPrint({
+    nearPoints(datas, input$plot1_click, addDist=T)
+  })
+  
+  output$brush_info <- renderPrint({
+    brushedPoints(datas, input$plot1_brush)
+  })
+  
+  # try to plot brushed points
+  output$plotbrush <- renderPlot({
+    brushind <- input$plotbrush_brush
+    ggplot(mtcars[brushind,],  aes(wt, mpg))+geom_point()
+  })
+  
+  # also output the mean of the points (x,y) ?
+  
+  # add the time series analysis
+  
+  #ndays <- reactive({get(input$daysRange)})
+  #ndays <- reactive({input$daysRange})
+  
+  txsubset = tx
+  
+  # Arima model library(forecasts)
+  amodel <- Arima(tx, order = c(1,2,3))
+  amodel1 <- Arima(txsubset, order= c(1,2,3))
+  
+  # output time series plot
+  output$plot2 <- renderPlot({
+    # arima forecast
+    #plot(forecast(amodel, 5))
+    #plot(amodel1)
+    # test time subsets 
+    #corona1 <- reactive({alabama %>% dplyr::filter(between(day,  startdate,  as.Date("2020-03-30"))) })
+    
+    ggplot()+ geom_line(data = alabama1, aes(day,cases), color="blue")
+    
+  })
+  
+  # multivariate ts library(vars)
+  x1 <- diffinv(rnorm(500))
+  x3 <- diffinv(rnorm(500))
+  x2 <- diffinv(rnorm(500))
+  x4 <- cbind(x1, x2, x3)
+  xts <- as.ts(x4)
+  Var.x <- VAR(xts, p=2, type="const")
+  fcst.x <- forecast(Var.x)
+  
+  # 
+  
+  output$multiplot <- renderPlot({
+    plot(thaiforecast)
+  })
+}
+
+
+
+weather_covid <- read.csv("tempcovid.csv")
+
+weather_covid$day <- as.Date(weather_covid$date)
+
+# day, country, cases, new_cases, deaths, AVG.TEMP.
+wc1 <- weather_covid %>% dplyr::select(day, country, cases, AVG.TEMP.)
+wc2 <- weather_covid %>% dplyr::select(day, country, cases, deaths)
+
+china <- wc1[wc1$country=="Mainland China",]
+usa <- wc1[wc1$country =="USA",]
+korea <- wc1[wc1$country=="Republic of Korea",]
+thailand <- wc1[wc1$country=="Thailand",]
+
+china_ts <- as.ts(china)
+chinavar<- VAR(china_ts, p=2, type="const")
+chinaforecast <- predict(chinavar, n.ahead=3, ci=0.95)
+
+
+thai_ts <- as.ts(thailand)
+thai_var <- VAR(thai_ts, p=2)
+thaiforecast <- predict(thai_var, n.ahead=3, ci=0.90)
+
+fanchart(thaiforecast, names="cases")
+fanchart(chinaforecast, names="cases")
