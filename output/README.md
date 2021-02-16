@@ -4,3 +4,5 @@
 
 The output directory contains analysis output, processed datasets, logs, or other processed things.
 
+Contains the weather data aggregated from thousands of 
+
