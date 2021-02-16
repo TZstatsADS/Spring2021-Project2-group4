@@ -71,10 +71,10 @@ jhu_merge = merge(jhu_cases, jhu_deaths, by = "Date")
 jhu_merge = merge(jhu_merge, jhu_rec, by = "Date")
 jhu_merge$Date = as.Date(jhu_merge$Date, format="%Y-%m-%d")
 jhu_merge$update = 1:nrow(jhu_merge)
-write.csv(jhu_merge, "../data/input_data/jhu_data.csv")
+write.csv(jhu_merge, "data/input_data/jhu_data.csv")
 
 # load country data
-countries = read.csv("../data/input_data/countries_codes_and_coordinates.csv")
+countries = read.csv("data/input_data/countries_codes_and_coordinates.csv")
 
 # check all jhu country names have corresponding country data
 jhu_country_list = names(jhu_merge)[grepl("_cases", names(jhu_merge))] %>% str_replace_all(., "_cases", "")
@@ -204,5 +204,5 @@ if (ind_plus>0) { weekly_ind = c(1,weekly_ind+ind_plus) }
 collated_reduced = collated_data[collated_data$update %in% weekly_ind,]
 
 # save file
-write.csv(collated_reduced, "../data/input_data/coronavirus.csv", row.names=F)
+write.csv(collated_reduced, "data/input_data/coronavirus.csv", row.names=F)
 rm(list = ls())

@@ -21,6 +21,7 @@ if(!require(shiny)) install.packages("shiny", repos = "http://cran.us.r-project.
 if(!require(shinyWidgets)) install.packages("shinyWidgets", repos = "http://cran.us.r-project.org")
 if(!require(shinydashboard)) install.packages("shinydashboard", repos = "http://cran.us.r-project.org")
 if(!require(shinythemes)) install.packages("shinythemes", repos = "http://cran.us.r-project.org")
+if(!require(DBI)) install.packages("DBI", repos = "http://cran.us.r-project.org")
 
 #--------------------------------------------------------------------
 ###############################Setting color#######################
@@ -30,11 +31,11 @@ covid_other_col = "#662506"
 
 #--------------------------------------------------------------------
 ###############################Import data#######################
-cv_cases = read.csv("../data/input_data/coronavirus.csv")
-countries = read.csv("../data/input_data/countries_codes_and_coordinates.csv")
-worldcountry = geojson_read("../data/input_data/50m.geojson", what = "sp")
-country_geoms = read.csv("../data/input_data/country_geoms.csv")
-cv_states = read.csv("../data/input_data/coronavirus_states.csv")
+cv_cases = read.csv("data/input_data/coronavirus.csv")
+countries = read.csv("data/input_data/countries_codes_and_coordinates.csv")
+worldcountry = geojson_read("data/input_data/50m.geojson", what = "sp")
+country_geoms = read.csv("data/input_data/country_geoms.csv")
+cv_states = read.csv("data/input_data/coronavirus_states.csv")
 
 #--------------------------------------------------------------------
 ###############################Define Functions#######################
@@ -173,7 +174,7 @@ cv_today_reduced = subset(cv_today, cases>=1000)
 write.csv(cv_today %>% select(c(country, date, update, cases, new_cases, deaths, new_deaths,
                                 cases_per_million, new_cases_per_million,
                                 deaths_per_million, new_deaths_per_million,
-                                weeks_since_case100, weeks_since_death10)), "../output/coronavirus_today.csv")
+                                weeks_since_case100, weeks_since_death10)), "output/coronavirus_today.csv")
 
 # aggregate at continent level
 cv_cases_continent = subset(cv_cases, !is.na(continent_level)) %>% select(c(cases, new_cases, deaths, new_deaths, date, continent_level)) %>% group_by(continent_level, date) %>% summarise_each(funs(sum)) %>% data.frame()
@@ -208,7 +209,7 @@ cv_cases_continent$cases_per_million =  as.numeric(format(round(cv_cases_contine
 cv_cases_continent$new_cases_per_million =  as.numeric(format(round(cv_cases_continent$new_cases/(cv_cases_continent$pop/1000000),1),nsmall=1))
 cv_cases_continent$deaths_per_million =  as.numeric(format(round(cv_cases_continent$deaths/(cv_cases_continent$pop/1000000),1),nsmall=1))
 cv_cases_continent$new_deaths_per_million =  as.numeric(format(round(cv_cases_continent$new_deaths/(cv_cases_continent$pop/1000000),1),nsmall=1))
-write.csv(cv_cases_continent, "../output/coronavirus_continent.csv")
+write.csv(cv_cases_continent, "output/coronavirus_continent.csv")
 
 # aggregate at global level
 cv_cases_global = cv_cases %>% select(c(cases, new_cases, deaths, new_deaths, date, global_level)) %>% group_by(global_level, date) %>% summarise_each(funs(sum)) %>% data.frame()
@@ -220,7 +221,7 @@ cv_cases_global$cases_per_million =  as.numeric(format(round(cv_cases_global$cas
 cv_cases_global$new_cases_per_million =  as.numeric(format(round(cv_cases_global$new_cases/(cv_cases_global$pop/1000000),1),nsmall=1))
 cv_cases_global$deaths_per_million =  as.numeric(format(round(cv_cases_global$deaths/(cv_cases_global$pop/1000000),1),nsmall=1))
 cv_cases_global$new_deaths_per_million =  as.numeric(format(round(cv_cases_global$new_deaths/(cv_cases_global$pop/1000000),1),nsmall=1))
-write.csv(cv_cases_global, "../output/coronavirus_global.csv")
+write.csv(cv_cases_global, "output/coronavirus_global.csv")
 
 # select large countries for mapping polygons
 cv_large_countries = cv_today %>% filter(alpha3 %in% worldcountry$ADM0_A3)
@@ -300,14 +301,14 @@ country_cols = cls[1:length(cls_names)]
 names(country_cols) = cls_names
 
 # add weather data 
-weather_con <- DBI::dbConnect(RSQLite::SQLite(), "../output/weather_data.sqlite")
-weather <- dbSendQuery(conn = weather_con, statement = "SELECT * from weather_transformed")
+weather_con <- DBI::dbConnect(RSQLite::SQLite(), "output/weather_data.sqlite")
+weather <- dbSendQuery(conn = weather_con, statement = "SELECT * from weather_transformed_grouped")
 df_weather <- dbFetch(weather)
 df_weather <- df_weather %>% 
   rename(
     date = DATE,
     alpha2 = Country
   )
-df_weather <- subset(df_weather, select = c('date', 'alpha2', 'AVG(TEMP)'))
+df_weather <- subset(df_weather, select = c('date', 'alpha2', 'Average_Temp', 'Station_Count'))
 cv_cases <- merge(cv_cases, df_weather, by=c("date","alpha2"))
 rm(df_weather)

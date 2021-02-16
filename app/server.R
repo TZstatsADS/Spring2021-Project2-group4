@@ -21,7 +21,6 @@ server = function(input, output, session) {
     
     reactive_db_large = reactive({
         large_countries = reactive_db() %>% filter(alpha3 %in% worldcountry$ADM0_A3)
-        #large_countries = reactive %>% filter(alpha3 %in% worldcountry$ADM0_A3)
         worldcountry_subset = worldcountry[worldcountry$ADM0_A3 %in% large_countries$alpha3, ]
         large_countries = large_countries[match(worldcountry_subset$ADM0_A3, large_countries$alpha3),]
         large_countries
@@ -74,16 +73,16 @@ server = function(input, output, session) {
             
             addCircleMarkers(data = reactive_db(), lat = ~ latitude, lng = ~ longitude, weight = 1, radius = ~(cases)^(1/5), 
                              fillOpacity = 0.2, color = covid_col, group = "COVID-19 (cumulative)",
-                             label = sprintf("<strong>%s (cumulative)</strong><br/>Avg Temperature: %.1f<br/>Confirmed cases: %g<br/>Cases per million: %g", reactive_db()$country, round(reactive_db()$'AVG(TEMP)', 1), reactive_db()$cases, reactive_db()$cases_per_million) %>% lapply(htmltools::HTML),
+                             label = sprintf("<strong>%s (cumulative)</strong><br/>Avg Temperature: %.1f<br/>Confirmed cases: %g<br/>Cases per million: %g", reactive_db()$country, round(reactive_db()$'Average_Temp', 1), reactive_db()$cases, reactive_db()$cases_per_million) %>% lapply(htmltools::HTML),
                              labelOptions = labelOptions(
                                  style = list("font-weight" = "normal", padding = "3px 8px", "color" = covid_col),
                                  textsize = "15px", direction = "auto")) %>%  
             
-            addPolygons(data = reactive_polygons(), stroke = FALSE, smoothFactor = 0.1, fillOpacity = 0.5, fillColor = ~cv_pal(reactive_db_large()$'AVG(TEMP)')) %>%
+            addPolygons(data = reactive_polygons(), stroke = FALSE, smoothFactor = 0.1, fillOpacity = 0.5, fillColor = ~cv_pal(reactive_db_large()$'Average_Temp')) %>%
             
             addCircleMarkers(data = reactive_db_last7d(), lat = ~ latitude, lng = ~ longitude, weight = 1, radius = ~(10*new_cases/cases), 
                              fillOpacity = 0.1, color = covid_col, group = "COVID-19 (new)",
-                             label = sprintf("<strong>%s (7-day average)</strong><br/>Avg Temperature: %.1f<br/>Confirmed cases: %g<br/>Cases per million: %g", reactive_db_last7d()$country, reactive_db_last7d()$'AVG(TEMP)', round(reactive_db_last7d()$new_cases/7,0), round(reactive_db_last7d()$new_cases_per_million/7,1), round(reactive_db_last7d()$new_deaths_per_million/7,1)) %>% lapply(htmltools::HTML),
+                             label = sprintf("<strong>%s (7-day average)</strong><br/>Avg Temperature: %.1f<br/>Confirmed cases: %g<br/>Cases per million: %g", reactive_db_last7d()$country, reactive_db_last7d()$'Average_Temp', round(reactive_db_last7d()$new_cases/7,0), round(reactive_db_last7d()$new_cases_per_million/7,1), round(reactive_db_last7d()$new_deaths_per_million/7,1)) %>% lapply(htmltools::HTML),
                              labelOptions = labelOptions(
                                  style = list("font-weight" = "normal", padding = "3px 8px", "color" = covid_col),
                                  textsize = "15px", direction = "auto")) 

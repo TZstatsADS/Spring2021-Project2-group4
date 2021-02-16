@@ -12,7 +12,7 @@ if(!require(dplyr)) install.packages("dplyr", repos = "http://cran.us.r-project.
 
 # load nyt case data
 ny_cases <- as.data.frame(data.table::fread("https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv"))
-state_pops <- read.csv("../data/input_data/us_state_pop.csv")
+state_pops <- read.csv("data/input_data/us_state_pop.csv")
 ny_cases <- merge(ny_cases, state_pops, by="state")
 
 # add data for new cases, new deaths, days since 100th case, and days since 10th death
@@ -58,5 +58,5 @@ ny_cases$deathsper100k =  as.numeric(format(round(ny_cases$deaths/(ny_cases$popu
 ny_cases$newdeathsper100k =  as.numeric(format(round(ny_cases$new_deaths/(ny_cases$population/100000),1),nsmall=1))
 
 # save output
-write.csv(ny_cases, "../data/input_data/coronavirus_states.csv", row.names=F)
+write.csv(ny_cases, "data/input_data/coronavirus_states.csv", row.names=F)
 rm(list = ls())

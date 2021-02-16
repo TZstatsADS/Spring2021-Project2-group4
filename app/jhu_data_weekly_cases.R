@@ -71,7 +71,7 @@ if (ind_plus>0) { weekly_ind = c(1,weekly_ind+ind_plus) }
 jhu_merge = jhu_merge[weekly_ind,]
 
 # load country data
-countries = read.csv("../data/input_data/countries_codes_and_coordinates.csv")
+countries = read.csv("data/input_data/countries_codes_and_coordinates.csv")
 
 # check all jhu country names have corresponding country data
 jhu_country_list = names(jhu_merge)[grepl("_cases", names(jhu_merge))] %>% str_replace_all(., "_cases", "")
@@ -175,5 +175,5 @@ for (i in 1:length(country_list)) {
 }
 
 # save file
-write.csv(collated_data, "../data/input_data/coronavirus.csv", row.names=F)
+write.csv(collated_data, "data/input_data/coronavirus.csv", row.names=F)
 rm(list = ls())
