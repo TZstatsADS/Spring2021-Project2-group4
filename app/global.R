@@ -36,6 +36,7 @@ countries = read.csv("data/input_data/countries_codes_and_coordinates.csv")
 worldcountry = geojson_read("data/input_data/50m.geojson", what = "sp")
 country_geoms = read.csv("data/input_data/country_geoms.csv")
 cv_states = read.csv("data/input_data/coronavirus_states.csv")
+hosp_dat <- read.csv("data/input_data/hosp-by-day.csv")
 
 #--------------------------------------------------------------------
 ###############################Define Functions#######################
