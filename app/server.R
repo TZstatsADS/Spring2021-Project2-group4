@@ -81,7 +81,7 @@ server = function(input, output, session) {
             
             addPolygons(data = reactive_polygons(), stroke = FALSE, smoothFactor = 0.1, fillOpacity = 0.5, fillColor = ~cv_pal(reactive_db_large()$'Average_Temp')) %>%
             
-            addCircleMarkers(data = reactive_db_last7d(), lat = ~ latitude, lng = ~ longitude, weight = 1, radius = ~(new_cases_per_million/50), 
+            addCircleMarkers(data = reactive_db_last7d(), lat = ~ latitude, lng = ~ longitude, weight = 1, radius = ~((new_cases_per_million/7)^(1/2)), 
                              fillOpacity = 0.1, color = covid_col, group = "COVID-19 (new)",
                              label = sprintf("<strong>%s (7-day average)</strong><br/>Avg Temperature: %.1f<br/>New cases: %g<br/><b>New cases per million: %g</b><br/>Weather stations: %g", 
                                              reactive_db_last7d()$country, reactive_db_last7d()$'Average_Temp', round(reactive_db_last7d()$new_cases/7,0), round(reactive_db_last7d()$new_cases_per_million/7,1), reactive_db_last7d()$Station_Count) %>% lapply(htmltools::HTML),

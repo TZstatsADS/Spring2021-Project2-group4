@@ -6,6 +6,7 @@ The App directory contains the app files for the Shiny App (i.e., ui.R, server.R
  - global.R is used to preprocess the data and define functions that used in server.R
  - output folder contains the data used for deployment and it will update daily
 
+The temperature overlay for the world map represents the 0th-100th percentile of average temperature (5 bins evenly spaced based on percentile). Northern Hemisphere countries are grouped as countries with latitudes >=15 and <= 75 while Northern Hemisphere countries are grouped as countries with latitudes <=-15 and >= -75. These values were chosen for the purpose of this project; choosing countries at the equator and countries too close to the poles, would mean including countries with little to no seasonal patterns and would hence not be of great purpose to the project. 
 
 The time series models used include ARIMA for univariate time series prediction/forecasting and VAR (vector autoregression) for multivariate time series prediction.
 
