@@ -236,7 +236,11 @@ server = function(input, output, session) {
         countrybase_arima <- base_country1()
         arima_cases = countrybase_arima %>% dplyr::select(cases)
         uni_country_ts <- as.ts(arima_cases)
-        amodel <- Arima(uni_country_ts, order = c(1,2,3))
+        # numeric input
+        ar1 <- arima1()
+        ar2 <- arima2()
+        ar3 <- arima3()
+        amodel <- Arima(uni_country_ts, order = c(ar1,ar2,ar3))
         plot(forecast(amodel, 5))
     })
 
@@ -259,9 +263,12 @@ server = function(input, output, session) {
 
     hvar <- VAR(hts, p=1, type="trend")
 
-    hforecast <- predict(hvar, n.ahead = 5, ci=0.95)
+    #hforecast <- predict(hvar, n.ahead = 5, ci=0.95)
+    prep <- reactive({as.numeric(input$predperiod)})
 
     output$nycplot <- renderPlot({
-        fanchart(hforecast, names = "hcount", main="hosp forecast")
+        numahead <- prep()
+        hforecast <- predict(hvar, n.ahead = numahead, ci=0.95)
+        fanchart(hforecast, names = "hcount", main="hosp. forecast")
     })
 }
