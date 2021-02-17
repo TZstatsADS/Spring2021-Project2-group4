@@ -8,4 +8,4 @@ coronavirus_continent.csv: coronavirus data on continent level
 
 coronavirus_global.csv
 
-coronavirus_today.csv
+coronavirus_today.csv: coronavirus data updated for the current date
