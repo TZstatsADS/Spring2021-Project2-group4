@@ -72,10 +72,9 @@ ui <- bootstrapPage(
                ),
                
                tabPanel("Multivar. Time Series Prediction ",
-                        pickerInput("country_select", "Choose Country:",
-                                    choices=as.character(unique(cv_cases$country)),
-                                    options = list(`actions-box` = TRUE, `none-selected-text` = "Please make a selection!"),
-                                    selected = as.character(cv_cases$country)[1])
+                        fluidRow(selectInput("countryId3", label = "Choose dataset", choices = c("Usa", "China", "Thailand","France", "Morocco", "Australia"),
+                                                      selected = NULL, multiple = FALSE)),
+                                        plotOutput("plot1", height=500)
                ),
                
                tabPanel("Univar. Time Series Visualizations with ARIMA",
