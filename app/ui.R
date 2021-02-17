@@ -72,13 +72,13 @@ ui <- bootstrapPage(
                ),
                
                tabPanel("Multivar. Time Series Prediction ",
-                        fluidRow(selectInput("countryId3", label = "Choose dataset", choices = c("Usa", "China", "Thailand","France", "Morocco", "Australia"),
+                        fluidRow(selectInput("countryId3", label = "Choose dataset", choices = c("Usa", "China", "Thailand","France", "Morocco", "Australia", "Mexico", "Taiwan", "Greece", "Canada"),
                                                       selected = NULL, multiple = FALSE)),
                                         plotOutput("plot1", height=500)
                ),
                
                tabPanel("Univar. Time Series Visualizations with ARIMA",
-                        fluidRow(selectInput("countryId1", label = "Choose dataset", choices = c("Usa", "China", "Thailand","France", "Morocco", "Australia"),
+                        fluidRow(selectInput("countryId1", label = "Choose dataset", choices = c("Usa", "China", "Thailand","France", "Morocco", "Australia", "Mexico", "Taiwan", "Greece", "Canada"),
                                                       selected = NULL, multiple = FALSE)),
                         fluidRow(column(width=10,
                                         numericInput("anum1", "ARIMA input 1:", 1),
@@ -88,7 +88,7 @@ ui <- bootstrapPage(
                         )),
                
                tabPanel("Multivar. Time Series Visualization ",
-                        fluidRow(selectInput("countryId2", label = "Choose dataset", choices = c("Usa", "China", "Thailand","France", "Morocco", "Australia"),
+                        fluidRow(selectInput("countryId2", label = "Choose dataset", choices = c("Usa", "China", "Thailand","France", "Morocco", "Australia", "Mexico", "Taiwan", "Greece", "Canada"),
                                                       selected = NULL, multiple = FALSE)),
                         plotOutput("multiplot", height=500)),
                
