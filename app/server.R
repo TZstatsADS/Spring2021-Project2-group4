@@ -206,6 +206,10 @@ server = function(input, output, session) {
     France <- cv_cases1[cv_cases1$country=="France",]
     Morocco <- cv_cases1[cv_cases1$country=="Morocco",]
     Australia <- cv_cases1[cv_cases1$country=="Australia",]
+    Mexico <- cv_cases1[cv_cases1$country=="Mexico",]
+    Taiwan <- cv_cases1[cv_cases1$country=="Taiwan",]
+    Greece <- cv_cases1[cv_cases1$country=="Greece",]
+    Canada <- cv_cases1[cv_cases1$country=="Canada",]
     
     #thailand <- cv_cases1[cv_cases1$country=="Thailand",]
     #country_ts = as.ts(thailand)
