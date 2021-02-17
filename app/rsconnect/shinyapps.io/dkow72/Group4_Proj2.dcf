@@ -5,8 +5,8 @@ account: dkow72
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 3647709
-bundleId: 4237521
+bundleId: 4237580
 url: https://dkow72.shinyapps.io/Group4_Proj2/
-when: 1613597647.68554
+when: 1613598795.53224
 asMultiple: FALSE
 asStatic: FALSE
