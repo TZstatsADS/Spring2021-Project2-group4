@@ -3,7 +3,7 @@
 ui <- bootstrapPage(
     tags$head(includeHTML("gtag.html")),
     navbarPage(theme = shinytheme("flatly"), collapsible = TRUE,
-               HTML('<a style="text-decoration:none;cursor:default;color:#FFFFFF;" class="active" href="#">COVID-19 tracker</a>'), id="nav",
+               HTML('<a style="text-decoration:none;cursor:default;color:#FFFFFF;" class="active" href="#">Visualizing WEATHER Covid Correlates with Temperature</a>'), id="nav",
                windowTitle = "COVID-19 tracker",
                
                tabPanel("COVID-19 mapper",
@@ -12,10 +12,9 @@ ui <- bootstrapPage(
                             leafletOutput("mymap", width="100%", height="100%"),
                             
                             absolutePanel(id = "controls", class = "panel panel-default",
-                                          top = 75, left = 55, width = 250, fixed=TRUE,
+                                          top = 150, left = 55, width = 250, fixed=TRUE,
                                           draggable = TRUE, height = "auto",
                                           
-                                          span(tags$i(h6("Reported cases are subject to significant variation in testing policy and capacity between countries.")), style="color:#045a8d"),
                                           h3(textOutput("reactive_case_count"), align = "right"),
                                           h4(textOutput("reactive_death_count"), align = "right"),
                                           h6(textOutput("clean_date_reactive"), align = "right"),
@@ -28,19 +27,18 @@ ui <- bootstrapPage(
                                                           choices = format(unique(cv_cases$date), "%d %b %y"),
                                                           selected = format(current_date, "%d %b %y"),
                                                           grid = FALSE,
-                                                          animate=animationOptions(interval = 3000, loop = FALSE))
+                                                          animate=animationOptions(interval = 1500, loop = FALSE))
                                           
                             )
                         )
                ),
                
                tabPanel("Region plots",
-                        
                         sidebarLayout(
                             sidebarPanel(
                                 
-                                span(tags$i(h6("Reported cases are subject to significant variation in testing policy and capacity between countries.")), style="color:#045a8d"),
-                                span(tags$i(h6("Occasional anomalies (e.g. spikes in daily case counts) are generally caused by changes in case definitions.")), style="color:#045a8d"),
+                                span(tags$i(h6("Adjust the slider to select a specific date range to display data over.")), style="color:#045a8d"),
+                                span(tags$i(h6("Toggle between different measures/metrics of COVID-tracking.")), style="color:#045a8d"),
                                 
                                 
                                 pickerInput("outcome_select", "Outcome:",   
@@ -48,11 +46,11 @@ ui <- bootstrapPage(
                                             selected = c("Cases"),
                                             multiple = FALSE),
                                 
-                                sliderInput("minimum_date",
-                                            "Minimum date:",
+                                sliderInput("date_range",
+                                            "Date range:",
                                             min = as.Date(cv_min_date,"%Y-%m-%d"),
                                             max = as.Date(current_date,"%Y-%m-%d"),
-                                            value=as.Date(cv_min_date),
+                                            value=c(as.Date(cv_min_date), as.Date(current_date)),
                                             timeFormat="%d %b"),
                                 
                                 "Select outcome, from drop-down menu to update plots"
@@ -60,35 +58,41 @@ ui <- bootstrapPage(
                             
                             mainPanel(
                                 tabsetPanel(
-                                    tabPanel("Cumulative", plotlyOutput("northern_plot_cumulative", width = "600px", height = "300px")),
-                                    tabPanel("New", plotlyOutput("northern_plot_new", width = "600px", height = "300px"))
+                                  tabPanel("New", plotlyOutput("northern_plot_new", width = "600px", height = "300px")),
+                                  tabPanel("Cumulative", plotlyOutput("northern_plot_cumulative", width = "600px", height = "300px"))
                                 ), 
                                 
                                 tabsetPanel(
-                                    tabPanel("Cumulative", plotlyOutput("southern_plot_cumulative", width = "600px", height = "300px")),
-                                    tabPanel("New", plotlyOutput("southern_plot_new", width = "600px", height = "300px"))
+                                  tabPanel("New", plotlyOutput("southern_plot_new", width = "600px", height = "300px")),
+                                  tabPanel("Cumulative", plotlyOutput("southern_plot_cumulative", width = "600px", height = "300px"))
                                 )
                             )
                         )
                ),
                
-               tabPanel("About this site",
-                        tags$div(
-                          tags$h4("Last update"), 
-                          h6(paste0(update)),
-                          "This site is updated once daily. There are several other excellent COVID mapping tools available, including those run by", 
-                          tags$a(href="https://experience.arcgis.com/experience/685d0ace521648f8a5beeeee1b9125cd", "the WHO,"),
-                          tags$a(href="https://gisanddata.maps.arcgis.com/apps/opsdashboard/index.html#/bda7594740fd40299423467b48e9ecf6", "Johns Hopkins University,"),"and",
-                          tags$a(href="https://ourworldindata.org/coronavirus-data-explorer?zoomToSelection=true&time=2020-03-01..latest&country=IND~USA~GBR~CAN~DEU~FRA&region=World&casesMetric=true&interval=smoothed&perCapita=true&smoothing=7&pickerMetric=total_cases&pickerSort=desc", "Our World in Data."),
-                          "Our aim is to complement these resources with several interactive features, including the timeline function and the ability to overlay past outbreaks.",
-                          
-                          tags$br(),tags$br(),tags$h4("Background"), 
-                          "In December 2019, cases of severe respiratory illness began to be reported across the city of Wuhan in China. 
-                          These were caused by a new type of coronavirus, and the disease is now commonly referred to as COVID-19.
-                          The number of COVID-19 cases started to escalate more quickly in mid-January and the virus soon spread beyond China's borders. 
-                          This story has been rapidly evolving ever since, and each day we are faced by worrying headlines regarding the current state of the outbreak.",
-                          tags$br(),tags$br(),tags$h4("Background")
-                        )
-                      )
+               # tabPanel("Multivar. Time Series Prediction ",
+               #          fluidRow(selectInput("countryId3", label = "Choose dataset", choices = c("USA", "China", "Thailand","France", "Morocco", "Australia", "Mexico", "Taiwan", "Greece", "Canada"),
+               #                                        selected = NULL, multiple = FALSE)),
+               #                          plotOutput("plot1", height=500)
+               # ),
+               
+               tabPanel("Univar. Time Series Visualizations with ARIMA",
+                        fluidRow(selectInput("countryId1", label = "Choose dataset", choices = c("USA", "China", "Thailand","France", "Morocco", "Australia", "Mexico", "Taiwan", "Greece", "Canada"),
+                                                      selected = NULL, multiple = FALSE)),
+                        fluidRow(column(width=10,
+                                        numericInput("anum1", "ARIMA input 1:", 1),
+                                        numericInput("anum2", "ARIMA input 2:", 2),
+                                        numericInput("anum3", "ARIMA input 3:", 3),
+                                        plotOutput("plot2", height=500, click="plot2_click"))
+                        )),
+               
+               tabPanel("Multivar. Time Series Visualization ",
+                        fluidRow(selectInput("countryId2", label = "Choose dataset", choices = c("USA", "China", "Thailand","France", "Morocco", "Australia", "Mexico", "Taiwan", "Greece", "Canada"),
+                                                      selected = NULL, multiple = FALSE)),
+                        plotOutput("multiplot", height=500)),
+               
+               tabPanel("NYC Time Series Prediction",
+                        numericInput("predperiod", "How many days ahead to predict:", 5),
+                        plotOutput("nycplot", height=500))
                )
     )
