@@ -73,16 +73,18 @@ server = function(input, output, session) {
             
             addCircleMarkers(data = reactive_db(), lat = ~ latitude, lng = ~ longitude, weight = 1, radius = ~(cases)^(1/5), 
                              fillOpacity = 0.2, color = covid_col, group = "COVID-19 (cumulative)",
-                             label = sprintf("<strong>%s (cumulative)</strong><br/>Avg Temperature: %.1f<br/>Confirmed cases: %g<br/>Cases per million: %g", reactive_db()$country, round(reactive_db()$'Average_Temp', 1), reactive_db()$cases, reactive_db()$cases_per_million) %>% lapply(htmltools::HTML),
+                             label = sprintf("<strong>%s (cumulative)</strong><br/>Avg Temperature: %.1f<br/>Confirmed cases: %g<br/>Cases per million: %g<br/>Weather stations: %g", 
+                                             reactive_db()$country, round(reactive_db()$'Average_Temp', 1), reactive_db()$cases, reactive_db()$cases_per_million, reactive_db()$Station_Count) %>% lapply(htmltools::HTML),
                              labelOptions = labelOptions(
                                  style = list("font-weight" = "normal", padding = "3px 8px", "color" = covid_col),
                                  textsize = "15px", direction = "auto")) %>%  
             
             addPolygons(data = reactive_polygons(), stroke = FALSE, smoothFactor = 0.1, fillOpacity = 0.5, fillColor = ~cv_pal(reactive_db_large()$'Average_Temp')) %>%
             
-            addCircleMarkers(data = reactive_db_last7d(), lat = ~ latitude, lng = ~ longitude, weight = 1, radius = ~(10*new_cases/cases), 
+            addCircleMarkers(data = reactive_db_last7d(), lat = ~ latitude, lng = ~ longitude, weight = 1, radius = ~(new_cases_per_million/50), 
                              fillOpacity = 0.1, color = covid_col, group = "COVID-19 (new)",
-                             label = sprintf("<strong>%s (7-day average)</strong><br/>Avg Temperature: %.1f<br/>Confirmed cases: %g<br/>Cases per million: %g", reactive_db_last7d()$country, reactive_db_last7d()$'Average_Temp', round(reactive_db_last7d()$new_cases/7,0), round(reactive_db_last7d()$new_cases_per_million/7,1), round(reactive_db_last7d()$new_deaths_per_million/7,1)) %>% lapply(htmltools::HTML),
+                             label = sprintf("<strong>%s (7-day average)</strong><br/>Avg Temperature: %.1f<br/>New cases: %g<br/><b>New cases per million: %g</b><br/>Weather stations: %g", 
+                                             reactive_db_last7d()$country, reactive_db_last7d()$'Average_Temp', round(reactive_db_last7d()$new_cases/7,0), round(reactive_db_last7d()$new_cases_per_million/7,1), reactive_db_last7d()$Station_Count) %>% lapply(htmltools::HTML),
                              labelOptions = labelOptions(
                                  style = list("font-weight" = "normal", padding = "3px 8px", "color" = covid_col),
                                  textsize = "15px", direction = "auto")) 
@@ -128,40 +130,40 @@ server = function(input, output, session) {
     # northern new plots
     output$northern_plot_new <- renderPlotly({
         if(input$outcome_select=='Cases') {
-            new_cases_plot_varstart(cv_aggregated_northern, input$minimum_date, "Northern Hemisphere")
+            new_cases_plot_varstart(cv_aggregated_northern, input$date_range, "Northern Hemisphere")
         }
         else {
-            new_deaths_plot(cv_aggregated_northern, input$minimum_date, "Northern Hemisphere")
+            new_deaths_plot(cv_aggregated_northern, input$date_range, "Northern Hemisphere")
         }
     })
     
     # northern cumulative plots
     output$northern_plot_cumulative <- renderPlotly({
         if(input$outcome_select=='Cases') {
-            cumulative_cases_plot(cv_aggregated_northern, input$minimum_date,"Northern Hemisphere")
+            cumulative_cases_plot(cv_aggregated_northern, input$date_range,"Northern Hemisphere")
         }
         else {
-            cumulative_deaths_plot(cv_aggregated_northern, input$minimum_date, "Northern Hemisphere")
+            cumulative_deaths_plot(cv_aggregated_northern, input$date_range, "Northern Hemisphere")
         }
     })
     
     # southern new plots
     output$southern_plot_new <- renderPlotly({
         if(input$outcome_select=='Cases') {
-            new_cases_plot_varstart(cv_aggregated_southern, input$minimum_date, "Southern Hemisphere")
+            new_cases_plot_varstart(cv_aggregated_southern, input$date_range, "Southern Hemisphere")
         }
         else {
-            new_deaths_plot(cv_aggregated_southern, input$minimum_date, "Southern Hemisphere")
+            new_deaths_plot(cv_aggregated_southern, input$date_range, "Southern Hemisphere")
         }
     })
     
     # southern cumulative plots
     output$southern_plot_cumulative <- renderPlotly({
         if(input$outcome_select=='Cases') {
-            cumulative_cases_plot(cv_aggregated_southern, input$minimum_date, "Southern Hemisphere")
+            cumulative_cases_plot(cv_aggregated_southern, input$date_range, "Southern Hemisphere")
         }
         else {
-            cumulative_deaths_plot(cv_aggregated_southern, input$minimum_date, "Southern Hemisphere")
+            cumulative_deaths_plot(cv_aggregated_southern, input$date_range, "Southern Hemisphere")
         }
     })
     
@@ -200,7 +202,7 @@ server = function(input, output, session) {
     cv_cases1 = cv_cases %>% dplyr::select(date, country, cases, Average_Temp)
     
     # put it in global.R ?
-    Usa <- cv_cases1[cv_cases1$country=="USA",]
+    USA <- cv_cases1[cv_cases1$country=="USA",]
     China <- cv_cases1[cv_cases1$country=="Mainland China",]
     Thailand <- cv_cases1[cv_cases1$country=="Thailand",]
     France <- cv_cases1[cv_cases1$country=="France",]
@@ -211,10 +213,6 @@ server = function(input, output, session) {
     Greece <- cv_cases1[cv_cases1$country=="Greece",]
     Canada <- cv_cases1[cv_cases1$country=="Canada",]
     
-    #thailand <- cv_cases1[cv_cases1$country=="Thailand",]
-    #country_ts = as.ts(thailand)
-    #var<- VAR(country_ts, p=1, type="const")
-    
     # reactive vals for choice of Country
     base_country1 <- reactive({get(input$countryId1)}) 
     base_country2 <- reactive({get(input$countryId2)})
@@ -224,11 +222,6 @@ server = function(input, output, session) {
     arima1 <- reactive({as.numeric(input$anum1)})
     arima2 <- reactive({as.numeric(input$anum2)})
     arima3 <- reactive({as.numeric(input$anum3)})
-
-    thai_cases = thailand %>% dplyr::select(cases)
-    uni_country_ts <- as.ts(thai_cases)
-    # uni_country_ts <- country_ts %>% dplyr::select(cases)
-    amodel <- Arima(uni_country_ts, order = c(1,2,3))
 
     output$plot1 <- renderPlot({
         mydata1 <- base_country3()
@@ -251,8 +244,10 @@ server = function(input, output, session) {
         # just plot the time series itself
         data_multi <- base_country2()
         data_multi$day = as.Date(data_multi$date)
-        ggplot()+ geom_line(data = data_multi, aes(day,cases), color="blue")+xlab("Time")+ylab("Count")+geom_line(data= data_multi, aes(day, AVG.TEMP.), color="green")
-                                                                                                                                                                                                     values =c('blue'='blue','green'='green'), labels = c('num. cases','avg. temp.'))
+        ggplot()+
+            geom_line(data = data_multi, aes(day,cases), color="blue")+
+            xlab("Time")+ylab("Count")+
+            geom_line(data= data_multi, aes(day, Average_Temp), color="green",values =c('blue'='blue','green'='green'), labels = c('num. cases','avg. temp.'))
     })
 
     # time series transform of hosp data

@@ -71,24 +71,41 @@ new_cases_plot = function(cv_aggregated, plot_date, plot_title) {
   g1
 }
 
-# function to plot cumulative cases by date with variable start date
-cumulative_cases_plot = function(cv_aggregated, start_date, plot_title) {
+# function to plot cumulative cases by date with variable date range
+cumulative_cases_plot = function(cv_aggregated, date_range, plot_title) {
+  cv_aggregated = subset(cv_aggregated, date<=date_range[2] & date>=date_range[1])
   g = ggplot(cv_aggregated, aes(x = date, y = cases, group = 1,
                            text = paste0(format(date, "%d %B %Y"), "\n", region, ": ",cases))) +
-    xlim(c(start_date,(current_date+1))) + xlab("Date")
+    xlim(date_range) + xlab("Date")
   
   g1 = g + geom_line(alpha=0.8) + geom_point(size = 1, alpha = 0.8) +
     ylab("Cases") + theme_bw() + 
+    scale_colour_manual(values=c(covid_col)) +
+    scale_y_continuous(labels = function(l) {trans = l / 1000000; paste0(trans, "M")}) +
     theme(legend.title = element_blank(), legend.position = "", plot.title = element_text(size=10)) +
     ggtitle(plot_title) 
   ggplotly(g1, tooltip = c("text")) %>% layout(legend = list(font = list(size=11)))
 }
 
-# function to plot cumulative deaths by date with variable start date
-cumulative_deaths_plot = function(cv_aggregated, start_date, plot_title) {
+# # function to plot cumulative cases per million by date with variable date range
+# cumulative_cases_per_m_plot = function(cv_aggregated, date_range, plot_title) {
+#   g = ggplot(cv_aggregated, aes(x = date, y = cases_per_million, group = 1,
+#                                 text = paste0(format(date, "%d %B %Y"), "\n", region, ": ",cases))) +
+#     xlim(date_range) + xlab("Date")
+#   
+#   g1 = g + geom_line(alpha=0.8) + geom_point(size = 1, alpha = 0.8) +
+#     ylab("Cases") + theme_bw() + 
+#     theme(legend.title = element_blank(), legend.position = "", plot.title = element_text(size=10)) +
+#     ggtitle(plot_title) 
+#   ggplotly(g1, tooltip = c("text")) %>% layout(legend = list(font = list(size=11)))
+# }
+
+# function to plot cumulative deaths by date with variable date range
+cumulative_deaths_plot = function(cv_aggregated, date_range, plot_title) {
+  cv_aggregated = subset(cv_aggregated, date<=date_range[2] & date>=date_range[1])
   g = ggplot(cv_aggregated, aes(x = date, y = deaths, group = 1,
                                 text = paste0(format(date, "%d %B %Y"), "\n", region, ": ",cases))) +
-    xlim(c(start_date,(current_date+1))) + xlab("Date")
+    xlim(date_range) + xlab("Date")
   
   g1 = g + geom_line(alpha=0.8) + geom_point(size = 1, alpha = 0.8) +
     ylab("Deaths") + theme_bw() + 
@@ -97,11 +114,25 @@ cumulative_deaths_plot = function(cv_aggregated, start_date, plot_title) {
   ggplotly(g1, tooltip = c("text")) %>% layout(legend = list(font = list(size=11)))
 }
 
-# function to plot new cases by date with variable start date
-new_cases_plot_varstart = function(cv_aggregated, start_date, plot_title) {
+# # function to plot cumulative deaths per million by date with variable date range
+# cumulative_deaths_per_m_plot = function(cv_aggregated, date_range, plot_title) {
+#   g = ggplot(cv_aggregated, aes(x = date, y = deaths_per_million, group = 1,
+#                                 text = paste0(format(date, "%d %B %Y"), "\n", region, ": ",cases))) +
+#     xlim(date_range) + xlab("Date")
+#   
+#   g1 = g + geom_line(alpha=0.8) + geom_point(size = 1, alpha = 0.8) +
+#     ylab("Cases") + theme_bw() + 
+#     theme(legend.title = element_blank(), legend.position = "", plot.title = element_text(size=10)) +
+#     ggtitle(plot_title) 
+#   ggplotly(g1, tooltip = c("text")) %>% layout(legend = list(font = list(size=11)))
+# }
+
+# function to plot new cases by date with variable date range
+new_cases_plot_varstart = function(cv_aggregated, date_range, plot_title) {
+  cv_aggregated = subset(cv_aggregated, date<=date_range[2] & date>=date_range[1])
   g = ggplot(cv_aggregated, aes(x = date, y = new_cases, group = 1,
                                 text = paste0(format(date, "%d %B %Y"), "\n", region, ": ",cases))) +
-    xlim(c(start_date,(current_date+1))) + xlab("Date")
+    xlim(date_range) + xlab("Date")
   
   g1 = g + geom_line(alpha=0.8) + geom_point(size = 1, alpha = 0.8) +
     ylab("Cases") + theme_bw() + 
@@ -110,11 +141,25 @@ new_cases_plot_varstart = function(cv_aggregated, start_date, plot_title) {
   ggplotly(g1, tooltip = c("text")) %>% layout(legend = list(font = list(size=11)))
 }
 
-# function to plot new deaths by date with variable start date
-new_deaths_plot = function(cv_aggregated, start_date, plot_title) {
+# # function to plot new cases per million by date with variable date range
+# new_cases_per_m_plot_varstart = function(cv_aggregated, date_range, plot_title) {
+#   g = ggplot(cv_aggregated, aes(x = date, y = new_cases_per_million, group = 1,
+#                                 text = paste0(format(date, "%d %B %Y"), "\n", region, ": ",cases))) +
+#     xlim(date_range) + xlab("Date")
+#   
+#   g1 = g + geom_line(alpha=0.8) + geom_point(size = 1, alpha = 0.8) +
+#     ylab("Cases") + theme_bw() + 
+#     theme(legend.title = element_blank(), legend.position = "", plot.title = element_text(size=10)) +
+#     ggtitle(plot_title) 
+#   ggplotly(g1, tooltip = c("text")) %>% layout(legend = list(font = list(size=11)))
+# }
+
+# function to plot new deaths by date with variable date range
+new_deaths_plot = function(cv_aggregated, date_range, plot_title) {
+  cv_aggregated = subset(cv_aggregated, date<=date_range[2] & date>=date_range[1])
   g = ggplot(cv_aggregated, aes(x = date, y = new_deaths, group = 1,
                                 text = paste0(format(date, "%d %B %Y"), "\n", region, ": ",cases))) +
-    xlim(c(start_date,(current_date+1))) + xlab("Date")
+    xlim(date_range) + xlab("Date")
   
   g1 = g + geom_line(alpha=0.8) + geom_point(size = 1, alpha = 0.8) +
     ylab("Deaths") + theme_bw() + 
@@ -122,6 +167,19 @@ new_deaths_plot = function(cv_aggregated, start_date, plot_title) {
     ggtitle(plot_title) 
   ggplotly(g1, tooltip = c("text")) %>% layout(legend = list(font = list(size=11)))
 }
+
+# # function to plot new deaths by date with variable date range
+# new_deaths_per_m_plot = function(cv_aggregated, date_range, plot_title) {
+#   g = ggplot(cv_aggregated, aes(x = date, y = new_deaths_per_million, group = 1,
+#                                 text = paste0(format(date, "%d %B %Y"), "\n", region, ": ",cases))) +
+#     xlim(date_range) + xlab("Date")
+#   
+#   g1 = g + geom_line(alpha=0.8) + geom_point(size = 1, alpha = 0.8) +
+#     ylab("Deaths") + theme_bw() + 
+#     theme(legend.title = element_blank(), legend.position = "", plot.title = element_text(size=10)) +
+#     ggtitle(plot_title) 
+#   ggplotly(g1, tooltip = c("text")) %>% layout(legend = list(font = list(size=11)))
+# }
 
 #
 
@@ -250,7 +308,7 @@ basemap = leaflet(plot_map) %>%
     position = "bottomright",
     overlayGroups = c("COVID-19 (new)", "COVID-19 (cumulative)"),
     options = layersControlOptions(collapsed = FALSE)) %>% 
-  hideGroup(c("COVID-19 (new)")) %>%
+  hideGroup(c("COVID-19 (cumulative)")) %>%
   addProviderTiles(providers$CartoDB.Positron) %>%
   fitBounds(~-100,-60,~60,70) %>%
   addLegend("bottomright", pal = cv_pal, values = ~cv_large_countries$deaths_per_million,
