@@ -71,37 +71,26 @@ ui <- bootstrapPage(
                         )
                ),
                
-               tabPanel("Time Series",
-                        sidebarLayout(
-                          sidebarPanel(
-
-                            span(tags$i(h6("Reported cases are subject to significant variation in testing policy and capacity between countries.")), style="color:#045a8d"),
-                            span(tags$i(h6("Occasional anomalies (e.g. spikes in daily case counts) are generally caused by changes in case definitions.")), style="color:#045a8d"),
-
-
-                            pickerInput("country_select", "Country:",
-                                        choices = as.character(unique(cv_cases$country)),
-                                        options = list(`actions-box` = TRUE, `none-selected-text` = "Please make a selection!"),
-                                        selected = as.character(cv_cases$country)[1],
-                                        multiple = FALSE),
-
-                            "Select outcome, from drop-down menu to update plots"
-                          )
-
-                          # mainPanel(
-               #              tabsetPanel(
-               #                tabPanel("Cumulative", plotlyOutput("northern_plot_cumulative", width = "600px", height = "300px")),
-               #                tabPanel("New", plotlyOutput("northern_plot_new", width = "600px", height = "300px"))
-               #              ),
-               # 
-               #              tabsetPanel(
-               #                tabPanel("Cumulative", plotlyOutput("southern_plot_cumulative", width = "600px", height = "300px")),
-               #                tabPanel("New", plotlyOutput("southern_plot_new", width = "600px", height = "300px"))
-               #              )
-               #            )
-                        )
-
+               tabPanel("Multivar. Time Series Prediction ",
+                        pickerInput("country_select", "Choose Country:",
+                                    choices=as.character(unique(cv_cases$country)),
+                                    options = list(`actions-box` = TRUE, `none-selected-text` = "Please make a selection!"),
+                                    selected = as.character(cv_cases$country)[1])
                ),
+               
+               tabPanel("Univar. Time Series Visualizations with ARIMA",
+                        fluidRow(column(width=10,
+                                        numericInput("anum1", "ARIMA input 1:", 1),
+                                        numericInput("anum2", "ARIMA input 2:", 1),
+                                        numericInput("anum3", "ARIMA input 3:", 1),
+                                        plotOutput("plot2", height=500, click="plot2_click"))
+                        )),
+               
+               tabPanel("Multivar. Time Series Visualization ",
+                        plotOutput("multiplot", height=500)),
+               
+               tabPanel("NYC Time Series Prediction",
+                        plotOutput("nycplot", height=500)),
                
                tabPanel("About this site",
                         tags$div(

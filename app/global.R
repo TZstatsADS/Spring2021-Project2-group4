@@ -24,10 +24,10 @@ if(!require(shinythemes)) install.packages("shinythemes", repos = "http://cran.u
 if(!require(DBI)) install.packages("DBI", repos = "http://cran.us.r-project.org")
 if(!require(vars)) install.packages("vars", repos = "http://cran.us.r-project.org")
 if(!require(forecast)) install.packages("forecast", repos = "http://cran.us.r-project.org")
-if(!require(tsbox)) install.packages("tsbox", repos = "http://cran.us.r-project.org")
-if(!require(data.table)) install.packages("data.table", repos = "http://cran.us.r-project.org")
-if(!require(zoo)) install.packages("zoo", repos = "http://cran.us.r-project.org")
-if(!require(lubridate)) install.packages("lubridate", repos = "http://cran.us.r-project.org")
+# if(!require(tsbox)) install.packages("tsbox", repos = "http://cran.us.r-project.org")
+# if(!require(data.table)) install.packages("data.table", repos = "http://cran.us.r-project.org")
+# if(!require(zoo)) install.packages("zoo", repos = "http://cran.us.r-project.org")
+# if(!require(lubridate)) install.packages("lubridate", repos = "http://cran.us.r-project.org")
 
 #--------------------------------------------------------------------
 ###############################Setting color#######################
@@ -123,6 +123,8 @@ new_deaths_plot = function(cv_aggregated, start_date, plot_title) {
   ggplotly(g1, tooltip = c("text")) %>% layout(legend = list(font = list(size=11)))
 }
 
+#
+
 #--------------------------------------------------------------------
 ###############################DATA PROCESSING: COVID-19#######################
 
@@ -178,13 +180,13 @@ cv_states_today = subset(cv_states, date==max(cv_states$date))
 cv_today_reduced = subset(cv_today, cases>=1000)
 
 # write current day's data
-write.csv(cv_today %>% select(c(country, date, update, cases, new_cases, deaths, new_deaths,
+write.csv(cv_today %>% dplyr::select(c(country, date, update, cases, new_cases, deaths, new_deaths,
                                 cases_per_million, new_cases_per_million,
                                 deaths_per_million, new_deaths_per_million,
                                 weeks_since_case100, weeks_since_death10)), "output/coronavirus_today.csv")
 
 # aggregate at continent level
-cv_cases_continent = subset(cv_cases, !is.na(continent_level)) %>% select(c(cases, new_cases, deaths, new_deaths, date, continent_level)) %>% group_by(continent_level, date) %>% summarise_each(funs(sum)) %>% data.frame()
+cv_cases_continent = subset(cv_cases, !is.na(continent_level)) %>% dplyr::select(c(cases, new_cases, deaths, new_deaths, date, continent_level)) %>% group_by(continent_level, date) %>% summarise_each(funs(sum)) %>% data.frame()
 
 # add variable for weeks since 100th case and 10th death
 cv_cases_continent$weeks_since_case100 = cv_cases_continent$weeks_since_death10 = 0
@@ -219,7 +221,7 @@ cv_cases_continent$new_deaths_per_million =  as.numeric(format(round(cv_cases_co
 write.csv(cv_cases_continent, "output/coronavirus_continent.csv")
 
 # aggregate at global level
-cv_cases_global = cv_cases %>% select(c(cases, new_cases, deaths, new_deaths, date, global_level)) %>% group_by(global_level, date) %>% summarise_each(funs(sum)) %>% data.frame()
+cv_cases_global = cv_cases %>% dplyr::select(c(cases, new_cases, deaths, new_deaths, date, global_level)) %>% group_by(global_level, date) %>% summarise_each(funs(sum)) %>% data.frame()
 cv_cases_global$weeks_since_case100 = cv_cases_global$weeks_since_death10 = 0:(nrow(cv_cases_global)-1)
 
 # add normalised counts
