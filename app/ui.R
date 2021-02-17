@@ -92,6 +92,7 @@ ui <- bootstrapPage(
                         plotOutput("multiplot", height=500)),
                
                tabPanel("NYC Time Series Prediction",
+                        numericInput("predperiod", "How many days ahead to predict:", 5),
                         plotOutput("nycplot", height=500))
                )
     )
