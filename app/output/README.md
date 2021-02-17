@@ -6,6 +6,6 @@ The output directory contains analysis output, processed datasets, logs, or othe
 
 coronavirus_continent.csv: coronavirus data on continent level
 
-coronavirus_global.csv
+coronavirus_global.csv: coronavirus data on global level 
 
 coronavirus_today.csv: coronavirus data updated for the current date
