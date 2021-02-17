@@ -5,3 +5,6 @@ The App directory contains the app files for the Shiny App (i.e., ui.R, server.R
  - ui.R and server.R are two key components for the Shiny App 
  - global.R is used to preprocess the data and define functions that used in server.R
  - output folder contains the data used for deployment and it will update daily
+
+
+The time series models used include ARIMA for univariate time series prediction/forecasting and VAR (vector autoregression) for multivariate time series prediction.
