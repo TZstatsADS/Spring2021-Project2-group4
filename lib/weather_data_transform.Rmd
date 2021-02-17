@@ -93,6 +93,9 @@ weather_sel <- mutate_if(weather_sel,
 weather_sel <- mutate_if(weather_sel, 
                 is.character, 
                 str_replace_all, pattern = "JA", replacement = "JP")
+weather_sel <- mutate_if(weather_sel, 
+                is.character, 
+                str_replace_all, pattern = "GM", replacement = "DE")
 ```
 
 
