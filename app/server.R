@@ -165,6 +165,62 @@ server = function(input, output, session) {
         }
     })
     
+    #S add  
+    
+    # forecast library for arima
+    
+    # time series transform of cv_cases
+    
+    # by country
+    cv_cases1 = cv_cases %>% dplyr::select(day, country, cases, AVG.TEMP.)
+    
+    reactive_time_series_db = reactive({
+        cv_cases1 %>% filter(cv_cases1$country %in% input$country_select)
+    })
+    
+    cv_cases_country = reactive_time_series_db
+    
+    country_ts = as.ts(cv_cases_country)
+    
+    var<- VAR(country_ts, p=1, type="const")
+    
+    # numeric input for arima 
+    arima1 <- reactive({as.numeric(input$anum1)})
+    arima2 <- reactive({as.numeric(input$anum2)})
+    arima3 <- reactive({as.numeric(input$anum3)})
+    
+    
+    uni_country_ts <- country_ts %>% dplyr::select(cases)
+    amodel <- Arima(uni_country_ts, order = c(1,2,3))
+    
+    output$plot2 <- renderPlot({
+        # arima forecast
+        plot(forecast(amodel, 5)) 
+    })
+    
+    output$multiplot <- renderPlot({
+        # just plot the time series itself 
+        #plot(cforecast)
+        ggplot()+ geom_line(data = cv_cases_country, aes(day,cases), color="blue")+xlab("Time")+ylab("Count")+geom_line(data= cv_cases_country, aes(day, 100*AVG.TEMP.), color="green")+scale_colour_manual(name = 'the colour', 
+                                                                                                                                                                                                            values =c('blue'='blue','green'='green'), labels = c('num. cases','avg. temp.'))
+    })
+    
+    # time series transform of hosp data 
+    h_dates <- as.Date(hosp_dat$date_of_interest, "%m/%d/%Y")
+    
+    hosp_dat_1 <- data.frame(day = h_dates, hcount = hosp_dat$HOSPITALIZED_COUNT, bcount = hosp_dat$BX_HOSPITALIZED_COUNT)
+    
+    hts <- as.ts(hosp_dat_1)
+    
+    hvar <- VAR(hts, p=1, type="trend")
+    
+    hforecast <- predict(hvar, n.ahead = 5, ci=0.95)
+    
+    output$nycplot <- renderPlot({
+        fanchart(hforecast, names = "hcount", main="hosp forecast")
+    })
+    
+    
     # output to download data
     output$downloadCsv <- downloadHandler(
         filename = function() {

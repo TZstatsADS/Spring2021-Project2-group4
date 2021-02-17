@@ -22,6 +22,12 @@ if(!require(shinyWidgets)) install.packages("shinyWidgets", repos = "http://cran
 if(!require(shinydashboard)) install.packages("shinydashboard", repos = "http://cran.us.r-project.org")
 if(!require(shinythemes)) install.packages("shinythemes", repos = "http://cran.us.r-project.org")
 if(!require(DBI)) install.packages("DBI", repos = "http://cran.us.r-project.org")
+if(!require(vars)) install.packages("vars", repos = "http://cran.us.r-project.org")
+if(!require(forecast)) install.packages("forecast", repos = "http://cran.us.r-project.org")
+if(!require(tsbox)) install.packages("tsbox", repos = "http://cran.us.r-project.org")
+if(!require(data.table)) install.packages("data.table", repos = "http://cran.us.r-project.org")
+if(!require(zoo)) install.packages("zoo", repos = "http://cran.us.r-project.org")
+if(!require(lubridate)) install.packages("lubridate", repos = "http://cran.us.r-project.org")
 
 #--------------------------------------------------------------------
 ###############################Setting color#######################
@@ -36,6 +42,7 @@ countries = read.csv("data/input_data/countries_codes_and_coordinates.csv")
 worldcountry = geojson_read("data/input_data/50m.geojson", what = "sp")
 country_geoms = read.csv("data/input_data/country_geoms.csv")
 cv_states = read.csv("data/input_data/coronavirus_states.csv")
+hosp_dat <- read.csv("data/input_data/hosp-by-day.csv")
 
 #--------------------------------------------------------------------
 ###############################Define Functions#######################

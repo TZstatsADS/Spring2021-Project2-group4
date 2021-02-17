@@ -35,7 +35,6 @@ ui <- bootstrapPage(
                ),
                
                tabPanel("Region plots",
-                        
                         sidebarLayout(
                             sidebarPanel(
                                 
@@ -70,6 +69,38 @@ ui <- bootstrapPage(
                                 )
                             )
                         )
+               ),
+               
+               tabPanel("Time Series",
+                        sidebarLayout(
+                          sidebarPanel(
+
+                            span(tags$i(h6("Reported cases are subject to significant variation in testing policy and capacity between countries.")), style="color:#045a8d"),
+                            span(tags$i(h6("Occasional anomalies (e.g. spikes in daily case counts) are generally caused by changes in case definitions.")), style="color:#045a8d"),
+
+
+                            pickerInput("country_select", "Country:",
+                                        choices = as.character(unique(cv_cases$country)),
+                                        options = list(`actions-box` = TRUE, `none-selected-text` = "Please make a selection!"),
+                                        selected = as.character(cv_cases$country)[1],
+                                        multiple = FALSE),
+
+                            "Select outcome, from drop-down menu to update plots"
+                          )
+
+                          # mainPanel(
+               #              tabsetPanel(
+               #                tabPanel("Cumulative", plotlyOutput("northern_plot_cumulative", width = "600px", height = "300px")),
+               #                tabPanel("New", plotlyOutput("northern_plot_new", width = "600px", height = "300px"))
+               #              ),
+               # 
+               #              tabsetPanel(
+               #                tabPanel("Cumulative", plotlyOutput("southern_plot_cumulative", width = "600px", height = "300px")),
+               #                tabPanel("New", plotlyOutput("southern_plot_new", width = "600px", height = "300px"))
+               #              )
+               #            )
+                        )
+
                ),
                
                tabPanel("About this site",
