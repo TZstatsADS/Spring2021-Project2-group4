@@ -79,6 +79,8 @@ ui <- bootstrapPage(
                ),
                
                tabPanel("Univar. Time Series Visualizations with ARIMA",
+                        fluidRow(selectInput("countryId1", label = "Choose dataset", choices = c("Usa", "China", "Thailand","France", "Morocco", "Australia"),
+                                                      selected = NULL, multiple = FALSE)),
                         fluidRow(column(width=10,
                                         numericInput("anum1", "ARIMA input 1:", 1),
                                         numericInput("anum2", "ARIMA input 2:", 1),
@@ -87,6 +89,8 @@ ui <- bootstrapPage(
                         )),
                
                tabPanel("Multivar. Time Series Visualization ",
+                        fluidRow(selectInput("countryId2", label = "Choose dataset", choices = c("Usa", "China", "Thailand","France", "Morocco", "Australia"),
+                                                      selected = NULL, multiple = FALSE)),
                         plotOutput("multiplot", height=500)),
                
                tabPanel("NYC Time Series Prediction",
