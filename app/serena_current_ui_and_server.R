@@ -1,3 +1,16 @@
+## preprocess
+tc<- read.csv("tempcovid.csv")
+tc1 <- tc %>% dplyr::select(date, country, cases, AVG.TEMP.)
+
+# generate dataframes for countries 
+# in global.R 
+Usa <- tc1[tc1$country=="USA",]
+China <- tc1[tc1$country=="Mainland China",]
+Thailand <- tc1[tc1$country=="Thailand",]
+France <- tc1[tc1$country=="France",]
+Morocco <- tc1[tc1$country=="Morocco",]
+Australia <- tc1[tc1$country=="USA",]
+
 
 
 uitabs4 <- shinyUI( navbarPage("Weather and Covid", id="nav", theme="bootstrap.css",
