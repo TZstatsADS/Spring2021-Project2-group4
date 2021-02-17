@@ -199,12 +199,23 @@ server = function(input, output, session) {
     
     cv_cases1 = cv_cases %>% dplyr::select(date, country, cases, Average_Temp)
     
-    thailand <- cv_cases1[cv_cases1$country=="Thailand",]
+    # put it in global.R ?
+    Usa <- cv_cases1[cv_cases1$country=="USA",]
+    China <- cv_cases1[cv_cases1$country=="Mainland China",]
+    Thailand <- cv_cases1[cv_cases1$country=="Thailand",]
+    France <- cv_cases1[cv_cases1$country=="France",]
+    Morocco <- cv_cases1[cv_cases1$country=="Morocco",]
+    Australia <- cv_cases1[cv_cases1$country=="Australia",]
     
-    country_ts = as.ts(thailand)
-
-    var<- VAR(country_ts, p=1, type="const")
-
+    #thailand <- cv_cases1[cv_cases1$country=="Thailand",]
+    #country_ts = as.ts(thailand)
+    #var<- VAR(country_ts, p=1, type="const")
+    
+    # reactive vals for choice of Country
+    base_country1 <- reactive({get(input$countryId1)}) 
+    base_country2 <- reactive({get(input$countryId2)})
+    base_country3 <- reactive({get(input$countryId3)})
+    
     # numeric input for arima
     arima1 <- reactive({as.numeric(input$anum1)})
     arima2 <- reactive({as.numeric(input$anum2)})
@@ -215,16 +226,29 @@ server = function(input, output, session) {
     # uni_country_ts <- country_ts %>% dplyr::select(cases)
     amodel <- Arima(uni_country_ts, order = c(1,2,3))
 
+    output$plot1 <- renderPlot({
+        mydata1 <- base_country3()
+        country_ts <- as.ts(mydata1)
+        country_var <- VAR(country_ts, p=1, type="const")
+        country_forecast <- predict(country_var, n.ahead=2, ci=0.95)
+        plot(country_forecast)        
+    })
+    
     output$plot2 <- renderPlot({
         # arima forecast
+        countrybase_arima <- base_country1()
+        arima_cases = countrybase_arima %>% dplyr::select(cases)
+        uni_country_ts <- as.ts(arima_cases)
+        amodel <- Arima(uni_country_ts, order = c(1,2,3))
         plot(forecast(amodel, 5))
     })
 
     output$multiplot <- renderPlot({
         # just plot the time series itself
-        #plot(cforecast)
-        ggplot()+ geom_line(data = thailand, aes(date,cases), color="blue")+xlab("Time")+ylab("Count")+geom_line(data=thailand, aes(date, 100*Average_Temp), color="green")+scale_colour_manual(name = 'the colour',
-                                                                                                                                                                                                            values =c('blue'='blue','green'='green'), labels = c('num. cases','avg. temp.'))
+        data_multi <- base_country2()
+        data_multi$day = as.Date(data_multi$date)
+        ggplot()+ geom_line(data = data_multi, aes(day,cases), color="blue")+xlab("Time")+ylab("Count")+geom_line(data= data_multi, aes(day, AVG.TEMP.), color="green")
+                                                                                                                                                                                                     values =c('blue'='blue','green'='green'), labels = c('num. cases','avg. temp.'))
     })
 
     # time series transform of hosp data
