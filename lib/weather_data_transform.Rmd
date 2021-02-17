@@ -75,9 +75,6 @@ weather <- dbSendQuery(conn = weather_con, statement = "SELECT DATE, SUBSTR(NAME
 
 weather_sel <- dbFetch(weather)
 head(weather_sel)
- 
-# all_sel <- separate(all_sel, "NAME", c("Station_Name", "Country"), sep= ", ")
-# head(all_sel)
 ```
 Now for the US, the state is listed alongside the country, so we need to split those up into separate columns as well
 ```{r}
@@ -87,7 +84,20 @@ head(weather_sel)
 # Double check that it works for US States
 weather_sel %>% filter(Country %like% 'US')
 ```
+
+Replace country codes for Russia and Japan. 
+```{r}
+weather_sel <- mutate_if(weather_sel, 
+                is.character, 
+                str_replace_all, pattern = "RS", replacement = "RU")
+weather_sel <- mutate_if(weather_sel, 
+                is.character, 
+                str_replace_all, pattern = "JA", replacement = "JP")
+```
+
+
 Now all we need to do is reinsert this transformed table into our database
+
 ```{r}
 dbWriteTable(
   weather_con,
@@ -120,8 +130,52 @@ dbWriteTable(
 )
 ```
 
+Trying to convert Lat/Longs to Country Names
+```{r}
+latlong <- dbSendQuery(conn = weather_con, statement = "SELECT LATITUDE, LONGITUDE FROM weather GROUP BY LATITUDE, LONGITUDE " )
 
+latlong <- dbFetch(latlong)
+head(latlong)
+```
 
+```{r}
+latlong <- latlong %>% filter(!is.na(LATITUDE) & !is.na(LONGITUDE))
+latlong$LATITUDE <- as.numeric(latlong$LATITUDE)
+latlong$LONGITUDE <- as.numeric(latlong$LONGITUDE)
+head(latlong)
+
+# From https://stackoverflow.com/questions/14334970/convert-latitude-and-longitude-coordinates-to-country-name-in-r
+
+library(sp)
+library(rworldmap)
+
+# The single argument to this function, points, is a data.frame in which:
+#   - column 1 contains the longitude in degrees
+#   - column 2 contains the latitude in degrees
+coords2country = function(points)
+{  
+  countriesSP <- getMap(resolution='high')
+  print(countriesSP)
+
+  # convert our list of points to a SpatialPoints object
+
+  #setting CRS directly to that from rworldmap
+  pointsSP = SpatialPoints(points, proj4string=CRS(proj4string(countriesSP)))  
+
+  # use 'over' to get indices of the Polygons object containing each point 
+  indices = over(pointsSP, countriesSP)
+
+  # return the ADMIN names of each country
+  indices$ADMIN  
+  #indices$ISO3 # returns the ISO3 code 
+  #indices$continent   # returns the continent (6 continent model)
+  #indices$REGION   # returns the continent (7 continent model)
+}
+
+countries <- coords2country(latlong)
+latlong_country <- data.frame(cbind(latlong, countries))
+head(latlong_country)
+```
 
 
 
