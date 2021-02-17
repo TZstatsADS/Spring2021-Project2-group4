@@ -82,8 +82,8 @@ ui <- bootstrapPage(
                                                       selected = NULL, multiple = FALSE)),
                         fluidRow(column(width=10,
                                         numericInput("anum1", "ARIMA input 1:", 1),
-                                        numericInput("anum2", "ARIMA input 2:", 1),
-                                        numericInput("anum3", "ARIMA input 3:", 1),
+                                        numericInput("anum2", "ARIMA input 2:", 2),
+                                        numericInput("anum3", "ARIMA input 3:", 3),
                                         plotOutput("plot2", height=500, click="plot2_click"))
                         )),
                
