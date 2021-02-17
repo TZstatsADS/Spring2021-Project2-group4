@@ -251,7 +251,7 @@ server = function(input, output, session) {
         ggplot()+
             geom_line(data = data_multi, aes(day,cases), color="blue")+
             xlab("Time")+ylab("Count")+
-            geom_line(data= data_multi, aes(day, Average_Temp), color="green",values =c('blue'='blue','green'='green'), labels = c('num. cases','avg. temp.'))
+            geom_line(data= data_multi, aes(day, Average_Temp), color="green")+scale_y_continuous(name="Number of cases", sec.axis = sec_axis(trans=~.*0.1, name="Avg. temp."))+ggtitle("Cases and Avg. temp. visualization") 
     })
 
     # time series transform of hosp data
